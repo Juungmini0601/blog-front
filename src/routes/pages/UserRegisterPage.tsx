@@ -9,9 +9,10 @@ import {
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { useUserRegisterForm } from '@/hooks/form/useUserRegisterForm.ts'
+import { Link } from 'react-router'
 
 export default function UserRegisterPage() {
-  const { register, handleSubmit, errors, isLoading, serverError, onSubmit } =
+  const { register, handleSubmit, errors, isLoading, onSubmit } =
     useUserRegisterForm()
 
   return (
@@ -95,13 +96,16 @@ export default function UserRegisterPage() {
               </p>
             )}
           </div>
-
-          {serverError && (
-            <div className="text-red-500 text-sm">{serverError}</div>
-          )}
         </CardContent>
 
-        <CardFooter className="flex justify-end mt-4">
+        <CardFooter className="flex justify-between mt-8">
+          <div>
+            <span>이미 가입 하셨나요? </span>
+            <Link to="/login">
+              <span className="font-bold cursor-pointer underline">로그인</span>
+            </Link>
+          </div>
+
           <Button
             type="submit"
             className="cursor-pointer"
