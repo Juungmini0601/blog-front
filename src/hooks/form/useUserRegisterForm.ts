@@ -3,6 +3,9 @@ import useUserAPI from '@/hooks/useUser.ts'
 import { useCallback } from 'react'
 import { type SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useModalStore } from '@/store/modalStore.ts'
+import { useNavigate } from 'react-router'
+import type { ApiResponse, ErrorMessage } from '@/api'
 
 const registerSchema = z.object({
   email: z
@@ -26,6 +29,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 export function useUserRegisterForm() {
   const { registerUserMutation } = useUserAPI()
+  const { openModal } = useModalStore()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -43,15 +48,21 @@ export function useUserRegisterForm() {
     values => {
       registerUserMutation.mutate(values, {
         onSuccess: () => {
-          alert('회원가입이 완료되었습니다!')
-          reset()
+          openModal('회원 가입', '회원 가입이 완료 되었습니다!')
+          navigate('/login')
         },
+        // TODO Type 에러 고치기
         onError: err => {
-          alert(err.message)
+          const errorResponse = err?.response?.data as ApiResponse<ErrorMessage>
+          const message =
+            errorResponse.error?.message || '알 수 없는 오류가 발생했습니다.'
+
+          openModal('회원 가입 실패', message)
+          reset()
         }
       })
     },
-    [registerUserMutation, reset]
+    [navigate, openModal, registerUserMutation, reset]
   )
 
   const isLoading = registerUserMutation.isPending || isSubmitting

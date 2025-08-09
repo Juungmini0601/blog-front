@@ -5,6 +5,7 @@ import DefaultLayout from '@/routes/layouts/Default.tsx'
 import queryClient from '@/api/queryClient.ts'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { GlobalModal } from '@/components/GlobalModal.tsx'
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,7 @@ export default function Router() {
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <ReactQueryDevtools />
+      <GlobalModal />
     </QueryClientProvider>
   )
 }
