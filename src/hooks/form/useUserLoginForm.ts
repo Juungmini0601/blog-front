@@ -48,6 +48,8 @@ export function useLoginForm() {
           navigate('/')
         },
         onError: err => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
           const errorResponse = err?.response?.data as ApiResponse<ErrorMessage>
           const message =
             errorResponse.error?.message || '알 수 없는 오류가 발생했습니다.'

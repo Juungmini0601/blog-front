@@ -1,6 +1,8 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { CreateUserRequest } from '@/type/users.ts'
-import { postRegisterUser } from '@/api/users.ts'
+import { getMe, postRegisterUser } from '@/api/users.ts'
+
+export const LOGIN_USER_KEY = 'LOGIN_USER'
 
 function useRegisterUser() {
   return useMutation({
@@ -8,11 +10,26 @@ function useRegisterUser() {
   })
 }
 
+function useGetMe() {
+  const { data } = useQuery({
+    queryFn: getMe,
+    queryKey: [LOGIN_USER_KEY]
+  })
+
+  return data
+}
+
 function useUserAPI() {
   const registerUserMutation = useRegisterUser()
+  const getMeQuery = useGetMe()
+  const getUserResponse = useGetMe()
 
   return {
-    registerUserMutation
+    user: {
+      ...getUserResponse?.data
+    },
+    registerUserMutation,
+    getMeQuery
   }
 }
 

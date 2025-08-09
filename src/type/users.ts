@@ -13,12 +13,13 @@ export interface CreateUserResponse {
   introduction: string | null
 }
 
-export interface User {
+export interface GetUserResponse {
   userId: number
   email: string
   nickname: string
-  password: string
-  profileImageUrl?: string
-  githubUrl?: string
-  introduction?: string
+  profileImageUrl: string | null
+  githubUrl: string | null
+  introduction: string | null
+  createdAt: string
+  updatedAt: string
 }

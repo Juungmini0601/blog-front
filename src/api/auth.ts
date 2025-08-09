@@ -5,4 +5,8 @@ async function postLogin(request: LoginRequest) {
   return apiClient.post('/v1/auth/login', { ...request })
 }
 
-export { postLogin }
+async function postLogout() {
+  return apiClient.post('/v1/auth/logout')
+}
+
+export { postLogin, postLogout }

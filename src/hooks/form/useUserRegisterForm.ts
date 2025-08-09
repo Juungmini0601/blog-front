@@ -51,8 +51,9 @@ export function useUserRegisterForm() {
           openModal('회원 가입', '회원 가입이 완료 되었습니다!')
           navigate('/login')
         },
-        // TODO Type 에러 고치기
         onError: err => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
           const errorResponse = err?.response?.data as ApiResponse<ErrorMessage>
           const message =
             errorResponse.error?.message || '알 수 없는 오류가 발생했습니다.'
