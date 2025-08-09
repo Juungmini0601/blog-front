@@ -3,6 +3,9 @@ import useAuthAPI from '@/hooks/useAuth.ts'
 import { type SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCallback } from 'react'
+import { useModalStore } from '@/store/modalStore.ts'
+import { useNavigate } from 'react-router'
+import type { ApiResponse, ErrorMessage } from '@/api'
 
 const loginSchema = z.object({
   email: z
@@ -22,6 +25,8 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 export function useLoginForm() {
   const { userLoginMutation } = useAuthAPI()
+  const { openModal } = useModalStore()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -39,14 +44,20 @@ export function useLoginForm() {
     values => {
       userLoginMutation.mutate(values, {
         onSuccess: () => {
-          alert('로그인이 완료 되었습니다!')
+          openModal('로그인', '로그인이 완료 되었습니다!')
+          navigate('/')
         },
         onError: err => {
-          alert(err.message)
+          const errorResponse = err?.response?.data as ApiResponse<ErrorMessage>
+          const message =
+            errorResponse.error?.message || '알 수 없는 오류가 발생했습니다.'
+
+          openModal('로그인 실패', message)
+          reset()
         }
       })
     },
-    [userLoginMutation]
+    [navigate, openModal, reset, userLoginMutation]
   )
 
   const isLoading = userLoginMutation.isPending || isSubmitting
