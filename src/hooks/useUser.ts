@@ -1,12 +1,18 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { CreateUserRequest } from '@/type/users.ts'
-import { getMe, postRegisterUser } from '@/api/users.ts'
+import type { CreateUserRequest, UpdateUserRequest } from '@/type/users.ts'
+import { getMe, postRegisterUser, putUpdateUser } from '@/api/users.ts'
 
 export const LOGIN_USER_KEY = 'LOGIN_USER'
 
 function useRegisterUser() {
   return useMutation({
     mutationFn: (request: CreateUserRequest) => postRegisterUser(request)
+  })
+}
+
+function useUpdateUser() {
+  return useMutation({
+    mutationFn: (request: UpdateUserRequest) => putUpdateUser(request)
   })
 }
 
@@ -21,7 +27,7 @@ function useGetMe() {
 
 function useUserAPI() {
   const registerUserMutation = useRegisterUser()
-  const getMeQuery = useGetMe()
+  const updateUserMutation = useUpdateUser()
   const getUserResponse = useGetMe()
 
   return {
@@ -29,7 +35,7 @@ function useUserAPI() {
       ...getUserResponse?.data
     },
     registerUserMutation,
-    getMeQuery
+    updateUserMutation
   }
 }
 

@@ -1,4 +1,9 @@
-import type { CreateUserRequest, GetUserResponse } from '@/type/users.ts'
+import type {
+  CreateUserRequest,
+  GetUserResponse,
+  UpdateUserRequest,
+  UpdateUserResponse
+} from '@/type/users.ts'
 import { apiClient, type ApiResponse } from '@/api/index.ts'
 
 async function postRegisterUser(request: CreateUserRequest) {
@@ -9,4 +14,8 @@ async function getMe(): Promise<ApiResponse<GetUserResponse>> {
   return apiClient.get('/v1/users/me')
 }
 
-export { postRegisterUser, getMe }
+async function putUpdateUser(request: UpdateUserRequest) {
+  return apiClient.put<UpdateUserResponse>('/v1/users/update', { ...request })
+}
+
+export { postRegisterUser, getMe, putUpdateUser }
