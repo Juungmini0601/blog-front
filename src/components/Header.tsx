@@ -9,7 +9,7 @@ import useAuthAPI from '@/hooks/useAuth.ts'
 function CreateArticleButton() {
   return (
     <Button asChild>
-      <Link to="/write">
+      <Link to="/post/create">
         <PenTool className="mr-2 h-4 w-4" />
         새글 작성
       </Link>

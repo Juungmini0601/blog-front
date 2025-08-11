@@ -8,6 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { GlobalModal } from '@/components/GlobalModal.tsx'
 import PostListPage from '@/routes/pages/PostListPage.tsx'
 import SettingsPage from '@/routes/pages/Settings.tsx'
+import PostCreatePage from '@/routes/pages/PostCreatePage.tsx'
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: '/settings',
         element: <SettingsPage />
+      },
+      {
+        path: '/post/create',
+        element: <PostCreatePage />
       }
     ]
   }
