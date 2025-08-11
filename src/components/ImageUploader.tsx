@@ -54,7 +54,7 @@ export default function ImageUploader({
   return (
     <div className="flex flex-col gap-4">
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
           isDragOver
             ? 'border-blue-500 bg-blue-50'
             : 'border-gray-300 hover:border-gray-400'

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Loader2, User } from 'lucide-react'
-import useUserAPI from '@/hooks/useUser.ts'
+import useUserAPI, { LOGIN_USER_KEY } from '@/hooks/useUser.ts'
 import useImage from '@/hooks/useImage.ts'
 import { useUserUpdateForm } from '@/hooks/form/useUserUpdateForm.ts'
 import ImageUploader from '@/components/ImageUploader.tsx'
@@ -13,9 +13,13 @@ import NicknameInput from '@/components/NicknameInput.tsx'
 import GithubUrlInput from '@/components/GithubUrlInput.tsx'
 import IntroductionInput from '@/components/IntroductionInput.tsx'
 import { useEffect } from 'react'
+import Confirm from '@/components/Confirm.tsx'
+import queryClient from '@/api/queryClient.ts'
+import { useNavigate } from 'react-router'
 
 export default function SettingsPage() {
-  const { user } = useUserAPI()
+  const { user, deleteUserMutation } = useUserAPI()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -50,6 +54,12 @@ export default function SettingsPage() {
 
   const handleImageRemove = () => {
     setValue('profileImageUrl', '')
+  }
+
+  const handleConfirmDelete = async () => {
+    await deleteUserMutation.mutateAsync()
+    queryClient.removeQueries({ queryKey: [LOGIN_USER_KEY] })
+    navigate('/login')
   }
 
   useEffect(() => {
@@ -126,12 +136,32 @@ export default function SettingsPage() {
                   <Button
                     onClick={handleSubmit(onSubmit)}
                     disabled={isSubmitting}
-                    className="flex-1">
+                    className="flex-1 cursor-pointer">
                     {isSubmitting && (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     )}
                     저장
                   </Button>
+
+                  <Confirm
+                    title="회원 탈퇴"
+                    description="이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구적으로 삭제됩니다."
+                    confirmText="탈퇴"
+                    cancelText="취소"
+                    isLoading={deleteUserMutation.isPending}
+                    onConfirm={handleConfirmDelete}
+                    trigger={
+                      <Button
+                        variant="destructive"
+                        className="flex-1 cursor-pointer"
+                        disabled={deleteUserMutation.isPending}>
+                        {deleteUserMutation.isPending && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        회원 탈퇴
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             </div>

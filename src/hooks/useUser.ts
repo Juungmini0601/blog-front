@@ -1,6 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { CreateUserRequest, UpdateUserRequest } from '@/type/users.ts'
-import { getMe, postRegisterUser, putUpdateUser } from '@/api/users.ts'
+import {
+  deleteUser,
+  getMe,
+  postRegisterUser,
+  putUpdateUser
+} from '@/api/users.ts'
 
 export const LOGIN_USER_KEY = 'LOGIN_USER'
 
@@ -16,6 +21,12 @@ function useUpdateUser() {
   })
 }
 
+function useDeleteUser() {
+  return useMutation({
+    mutationFn: () => deleteUser()
+  })
+}
+
 function useGetMe() {
   const { data } = useQuery({
     queryFn: getMe,
@@ -28,6 +39,7 @@ function useGetMe() {
 function useUserAPI() {
   const registerUserMutation = useRegisterUser()
   const updateUserMutation = useUpdateUser()
+  const deleteUserMutation = useDeleteUser()
   const getUserResponse = useGetMe()
 
   return {
@@ -35,7 +47,8 @@ function useUserAPI() {
       ...getUserResponse?.data
     },
     registerUserMutation,
-    updateUserMutation
+    updateUserMutation,
+    deleteUserMutation
   }
 }
 

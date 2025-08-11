@@ -18,4 +18,8 @@ async function putUpdateUser(request: UpdateUserRequest) {
   return apiClient.put<UpdateUserResponse>('/v1/users/update', { ...request })
 }
 
-export { postRegisterUser, getMe, putUpdateUser }
+async function deleteUser() {
+  return apiClient.delete('/v1/users/remove')
+}
+
+export { postRegisterUser, getMe, putUpdateUser, deleteUser }
