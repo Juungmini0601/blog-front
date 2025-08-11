@@ -30,6 +30,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github.css'
 import useImage from '@/hooks/useImage'
@@ -42,50 +43,6 @@ const seriesList = [
   { id: 3, name: 'Next.js 실전 가이드' },
   { id: 4, name: 'UI/UX 디자인 패턴' }
 ]
-
-/**
- * 마크다운 개행 처리 함수
- * - 엔터 한 번: 같은 문단 내 줄바꿈 (ReactMarkdown에서 문단으로 처리)
- * - 엔터 두 번: 새로운 문단 구분 (두 개의 문단으로 분리)
- */
-function processMarkdownLineBreaks(content: string): string {
-  // 코드 블록과 인라인 코드를 임시로 보호
-  const codeBlocks: string[] = []
-  const inlineCodes: string[] = []
-
-  let processed = content
-    // 코드 블록 보호 (```로 감싸진 부분)
-    .replace(/```[\s\S]*?```/g, match => {
-      codeBlocks.push(match)
-      return `__CODE_BLOCK_${codeBlocks.length - 1}__`
-    })
-    // 인라인 코드 보호 (`로 감싸진 부분)
-    .replace(/`[^`\n]+`/g, match => {
-      inlineCodes.push(match)
-      return `__INLINE_CODE_${inlineCodes.length - 1}__`
-    })
-
-  // 참고 코드 방식 적용: 엔터 한 번을 두 번으로 변환하여 문단 분리로 처리
-  // 먼저 이미 존재하는 연속 개행을 보호
-  processed = processed
-    .replace(/\n{2,}/g, match => `__EXISTING_BREAKS_${match.length}__`)
-    // 단일 개행을 두 개 개행으로 변환 (문단 분리)
-    .replace(/\n/g, '\n\n')
-    // 보호된 연속 개행 복원 (하나 더 추가하여 더 큰 간격)
-    .replace(/__EXISTING_BREAKS_(\d+)__/g, (_, count) =>
-      '\n'.repeat(parseInt(count) + 1)
-    )
-
-  // 코드 블록과 인라인 코드 복원
-  const final = processed
-    .replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => codeBlocks[parseInt(index)])
-    .replace(
-      /__INLINE_CODE_(\d+)__/g,
-      (_, index) => inlineCodes[parseInt(index)]
-    )
-
-  return final
-}
 
 export default function PostCreatePage() {
   // 미리보기 모드 상태 (모바일에서 에디터/미리보기 전환용)
@@ -449,7 +406,12 @@ export default function PostCreatePage() {
                   <Textarea
                     id="content"
                     placeholder="마크다운으로 내용을 작성하세요..."
-                    className={`min-h-[400px] font-mono ${errors.content ? 'border-destructive' : ''}`}
+                    className={`min-h-[400px] font-mono whitespace-pre-wrap resize-none leading-relaxed ${errors.content ? 'border-destructive' : ''}`}
+                    style={{
+                      lineHeight: '1.6',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'pre-wrap'
+                    }}
                     {...content_register}
                     ref={el => {
                       // React Hook Form의 ref와 로컬 ref를 병합
@@ -525,7 +487,7 @@ export default function PostCreatePage() {
                 {/* 마크다운 미리보기 */}
                 <div className="prose dark:prose-invert max-w-none">
                   <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
                     rehypePlugins={[rehypeHighlight]}
                     components={{
                       // 코드 블록 스타일링
@@ -574,23 +536,17 @@ export default function PostCreatePage() {
                           {children}
                         </a>
                       ),
-                      // 문단 처리 - 개행 보존
+                      // 문단 처리 - 개행 보존 및 문단 간 여백
                       p: ({ children, ...props }) => (
                         <p
-                          className="whitespace-pre-wrap leading-relaxed"
+                          className="leading-relaxed mb-3 last:mb-0"
                           {...props}>
                           {children}
                         </p>
                       )
                     }}>
-                    {(() => {
-                      const content =
-                        watchedValues.content ||
-                        '*내용을 입력하면 여기에 미리보기가 표시됩니다.*'
-
-                      // 마크다운 개행 처리 적용
-                      return processMarkdownLineBreaks(content)
-                    })()}
+                    {watchedValues.content ||
+                      '*내용을 입력하면 여기에 미리보기가 표시됩니다.*'}
                   </ReactMarkdown>
                 </div>
               </CardContent>
