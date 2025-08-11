@@ -1,5 +1,5 @@
 import usePostCreateForm from '@/hooks/form/usePostCreateForm'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   Bold,
   Italic,
@@ -9,7 +9,11 @@ import {
   Save,
   Eye,
   Globe,
-  Lock
+  Lock,
+  Heading1,
+  Heading2,
+  Heading3,
+  List
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,8 +28,12 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import remarkGfm from 'remark-gfm'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
+import 'highlight.js/styles/github.css'
+import useImage from '@/hooks/useImage'
+import { ResultType } from '@/api/index'
 
 // 더미 시리즈 데이터
 const seriesList = [
@@ -35,20 +43,73 @@ const seriesList = [
   { id: 4, name: 'UI/UX 디자인 패턴' }
 ]
 
+/**
+ * 마크다운 개행 처리 함수
+ * - 엔터 한 번: 같은 문단 내 줄바꿈 (ReactMarkdown에서 문단으로 처리)
+ * - 엔터 두 번: 새로운 문단 구분 (두 개의 문단으로 분리)
+ */
+function processMarkdownLineBreaks(content: string): string {
+  // 코드 블록과 인라인 코드를 임시로 보호
+  const codeBlocks: string[] = []
+  const inlineCodes: string[] = []
+
+  let processed = content
+    // 코드 블록 보호 (```로 감싸진 부분)
+    .replace(/```[\s\S]*?```/g, match => {
+      codeBlocks.push(match)
+      return `__CODE_BLOCK_${codeBlocks.length - 1}__`
+    })
+    // 인라인 코드 보호 (`로 감싸진 부분)
+    .replace(/`[^`\n]+`/g, match => {
+      inlineCodes.push(match)
+      return `__INLINE_CODE_${inlineCodes.length - 1}__`
+    })
+
+  // 참고 코드 방식 적용: 엔터 한 번을 두 번으로 변환하여 문단 분리로 처리
+  // 먼저 이미 존재하는 연속 개행을 보호
+  processed = processed
+    .replace(/\n{2,}/g, match => `__EXISTING_BREAKS_${match.length}__`)
+    // 단일 개행을 두 개 개행으로 변환 (문단 분리)
+    .replace(/\n/g, '\n\n')
+    // 보호된 연속 개행 복원 (하나 더 추가하여 더 큰 간격)
+    .replace(/__EXISTING_BREAKS_(\d+)__/g, (_, count) =>
+      '\n'.repeat(parseInt(count) + 1)
+    )
+
+  // 코드 블록과 인라인 코드 복원
+  const final = processed
+    .replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => codeBlocks[parseInt(index)])
+    .replace(
+      /__INLINE_CODE_(\d+)__/g,
+      (_, index) => inlineCodes[parseInt(index)]
+    )
+
+  return final
+}
+
 export default function PostCreatePage() {
+  // 미리보기 모드 상태 (모바일에서 에디터/미리보기 전환용)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
+
+  // 폼 상태 관리
   const { register, handleSubmit, watch, setValue, errors, onSubmit } =
     usePostCreateForm()
   const watchedValues = watch()
 
-  // TODO 초기 데이터 로드
-  // TODO AutoSave
-  // TODO 단축ㄷ키
+  // 텍스트 영역 참조 (마크다운 에디터용)
+  const { ref: content_rhf_ref, ...content_register } = register('content')
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 
-  // 마크다운 에디터 툴바
+  // 이미지 업로드 훅
+  const { imageUploadMutation } = useImage()
+
+  /**
+   * 마크다운 문법 삽입 함수
+   * 선택된 텍스트를 지정된 마크다운 문법으로 감싸는 기능
+   */
   const insertMarkdown = useCallback(
-    (before: string, after: string) => {
-      const textarea = document.getElementById('content') as HTMLTextAreaElement
+    (before: string, after: string = '') => {
+      const textarea = textareaRef.current
       if (!textarea) return
 
       const start = textarea.selectionStart
@@ -60,9 +121,10 @@ export default function PostCreatePage() {
         textarea.value.substring(0, start) +
         newText +
         textarea.value.substring(end)
+
       setValue('content', newValue)
 
-      // 커서 위치 조정
+      // 커서 위치 조정 (삽입된 텍스트 내부로 이동)
       setTimeout(() => {
         textarea.focus()
         textarea.setSelectionRange(
@@ -74,9 +136,91 @@ export default function PostCreatePage() {
     [setValue]
   )
 
+  /**
+   * 줄 단위 접두사 삽입 함수
+   * 헤딩(#), 리스트(-) 등을 각 줄 앞에 추가하는 기능
+   */
+  const insertLinePrefix = useCallback(
+    (prefix: string) => {
+      const textarea = textareaRef.current
+      if (!textarea) return
+
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const value = textarea.value
+
+      const beforeSelection = value.slice(0, start)
+      const selection = value.slice(start, end)
+      const afterSelection = value.slice(end)
+
+      // 선택된 텍스트를 줄 단위로 분리하여 각 줄에 접두사 추가
+      const lines = selection.split('\n')
+      const prefixedLines = lines.map(line => prefix + line)
+      const newSelection = prefixedLines.join('\n')
+
+      const newValue = beforeSelection + newSelection + afterSelection
+      setValue('content', newValue)
+
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start, start + newSelection.length)
+      }, 0)
+    },
+    [setValue]
+  )
+
+  /**
+   * 커서 위치에 텍스트 삽입 함수
+   * 이미지 URL 등을 현재 커서 위치에 삽입하는 기능
+   */
+  const insertTextAtCursor = useCallback(
+    (text: string) => {
+      const textarea = textareaRef.current
+      if (!textarea) return
+
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const value = textarea.value
+
+      const newValue = value.substring(0, start) + text + value.substring(end)
+      setValue('content', newValue)
+
+      setTimeout(() => {
+        const newCursor = start + text.length
+        textarea.focus()
+        textarea.setSelectionRange(newCursor, newCursor)
+      }, 0)
+    },
+    [setValue]
+  )
+
+  // 마크다운 에디터 툴바 버튼 설정
   const toolbarActions = [
-    { icon: Bold, action: () => insertMarkdown('**', '**'), tooltip: '굵게' },
-    { icon: Italic, action: () => insertMarkdown('*', '*'), tooltip: '기울임' },
+    {
+      icon: Heading1,
+      action: () => insertLinePrefix('# '),
+      tooltip: '제목 1'
+    },
+    {
+      icon: Heading2,
+      action: () => insertLinePrefix('## '),
+      tooltip: '제목 2'
+    },
+    {
+      icon: Heading3,
+      action: () => insertLinePrefix('### '),
+      tooltip: '제목 3'
+    },
+    {
+      icon: Bold,
+      action: () => insertMarkdown('**', '**'),
+      tooltip: '굵게'
+    },
+    {
+      icon: Italic,
+      action: () => insertMarkdown('*', '*'),
+      tooltip: '기울임'
+    },
     {
       icon: Code,
       action: () => insertMarkdown('`', '`'),
@@ -84,19 +228,74 @@ export default function PostCreatePage() {
     },
     {
       icon: Link,
-      action: () => insertMarkdown('[', '](url)'),
+      action: () => insertMarkdown('[링크 텍스트](', ')'),
       tooltip: '링크'
     },
-    // { icon: List, action: () => insertMarkdown('- '), tooltip: '리스트' },
+    {
+      icon: List,
+      action: () => insertLinePrefix('- '),
+      tooltip: '목록'
+    },
     {
       icon: ImageIcon,
-      action: () => insertMarkdown('![alt](', ')'),
+      action: () => insertMarkdown('![이미지 설명](', ')'),
       tooltip: '이미지'
     }
   ]
 
+  // 선택된 시리즈 정보
   const selectedSeries = seriesList.find(
     series => series.id === watchedValues.seriesId
+  )
+
+  /**
+   * 클립보드 이미지 붙여넣기 처리 함수
+   * 이미지를 클립보드에서 붙여넣으면 자동으로 업로드하고 마크다운 삽입
+   */
+  const handlePaste = useCallback(
+    async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      try {
+        const items = e.clipboardData?.items
+        if (!items) return
+
+        // 클립보드 아이템 중 이미지 파일 찾기
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i]
+          if (item.kind === 'file' && item.type.startsWith('image/')) {
+            e.preventDefault()
+            const file = item.getAsFile()
+            if (!file) continue
+
+            // 이미지 업로드 URL 발급
+            const uploadResult = await imageUploadMutation.mutateAsync(
+              file.name
+            )
+            if (
+              uploadResult.result !== ResultType.SUCCESS ||
+              !uploadResult.data
+            ) {
+              throw new Error('이미지 업로드 URL 생성 실패')
+            }
+
+            // 실제 파일 업로드 (S3 등)
+            await fetch(uploadResult.data.uploadUrl, {
+              method: 'PUT',
+              headers: { 'Content-Type': file.type },
+              body: file
+            })
+
+            // 마크다운 이미지 문법으로 삽입
+            const markdownImage = `![이미지](${uploadResult.data.accessUrl})`
+            insertTextAtCursor(markdownImage)
+            break
+          }
+        }
+      } catch (error) {
+        console.error('이미지 붙여넣기 오류:', error)
+        alert('이미지 붙여넣기 중 오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    },
+    [imageUploadMutation, insertTextAtCursor]
   )
 
   return (
@@ -107,6 +306,7 @@ export default function PostCreatePage() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">새 글 작성</h1>
             <div className="flex items-center gap-2">
+              {/* 모바일용 미리보기 전환 버튼 */}
               <Button
                 variant="outline"
                 size="sm"
@@ -115,6 +315,7 @@ export default function PostCreatePage() {
                 <Eye className="h-4 w-4 mr-2" />
                 {isPreviewMode ? '편집' : '미리보기'}
               </Button>
+              {/* 저장 버튼 */}
               <Button
                 variant="outline"
                 onClick={handleSubmit(onSubmit)}>
@@ -131,12 +332,13 @@ export default function PostCreatePage() {
           {/* 좌측 에디터 영역 */}
           <div
             className={`xl:col-span-7 space-y-6 ${isPreviewMode ? 'hidden xl:block' : ''}`}>
-            {/* 메타 정보 카드 */}
+            {/* 글 메타정보 입력 카드 */}
             <Card>
               <CardHeader>
                 <CardTitle>글 정보</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* 제목 입력 */}
                 <div className="space-y-2">
                   <Label htmlFor="title">제목 *</Label>
                   <Input
@@ -155,6 +357,7 @@ export default function PostCreatePage() {
                   </p>
                 </div>
 
+                {/* 썸네일 URL 입력 */}
                 <div className="space-y-2">
                   <Label htmlFor="thumbnailUrl">썸네일 URL</Label>
                   <Input
@@ -170,6 +373,7 @@ export default function PostCreatePage() {
                   )}
                 </div>
 
+                {/* 시리즈 선택 */}
                 <div className="space-y-2">
                   <Label htmlFor="seriesId">시리즈</Label>
                   <Select
@@ -196,6 +400,7 @@ export default function PostCreatePage() {
                   </Select>
                 </div>
 
+                {/* 공개/비공개 설정 */}
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="isPublic"
@@ -225,7 +430,7 @@ export default function PostCreatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>내용 작성</CardTitle>
-                {/* 마크다운 툴바 */}
+                {/* 마크다운 에디터 툴바 */}
                 <div className="flex items-center gap-1 pt-2 border-t">
                   {toolbarActions.map((action, index) => (
                     <Button
@@ -245,7 +450,18 @@ export default function PostCreatePage() {
                     id="content"
                     placeholder="마크다운으로 내용을 작성하세요..."
                     className={`min-h-[400px] font-mono ${errors.content ? 'border-destructive' : ''}`}
-                    {...register('content')}
+                    {...content_register}
+                    ref={el => {
+                      // React Hook Form의 ref와 로컬 ref를 병합
+                      if (typeof content_rhf_ref === 'function') {
+                        content_rhf_ref(el)
+                      } else if (content_rhf_ref) {
+                        // @ts-expect-error: 타입 호환성 문제 해결
+                        content_rhf_ref.current = el
+                      }
+                      textareaRef.current = el
+                    }}
+                    onPaste={handlePaste}
                   />
                   {errors.content && (
                     <p className="text-sm text-destructive">
@@ -265,15 +481,16 @@ export default function PostCreatePage() {
                 <CardTitle>미리보기</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* 메타 정보 미리보기 */}
+                {/* 글 메타정보 미리보기 */}
                 <div className="space-y-2 pb-4 border-b">
                   <h1 className="text-2xl font-bold">
                     {watchedValues.title || '제목을 입력하세요'}
                   </h1>
 
+                  {/* 썸네일 이미지 */}
                   {watchedValues.thumbnailUrl && (
                     <img
-                      src={watchedValues.thumbnailUrl || '/placeholder.svg'}
+                      src={watchedValues.thumbnailUrl}
                       alt="썸네일"
                       className="w-full h-48 object-cover rounded-lg"
                       onError={e => {
@@ -282,6 +499,7 @@ export default function PostCreatePage() {
                     />
                   )}
 
+                  {/* 시리즈 및 공개 상태 표시 */}
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     {selectedSeries && (
                       <span className="bg-secondary px-2 py-1 rounded">
@@ -308,18 +526,19 @@ export default function PostCreatePage() {
                 <div className="prose dark:prose-invert max-w-none">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeHighlight]}
                     components={{
-                      // 코드 블록/인라인을 className의 language- 유무로 구분하여 스타일링
-                      code: ({ node, className, children, ...props }) => {
-                        const isBlock = /language-(\w+)/.test(className || '')
-                        return isBlock ? (
-                          <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-                            <code
-                              className={className}
-                              {...props}>
-                              {children}
-                            </code>
-                          </pre>
+                      // 코드 블록 스타일링
+                      code: ({ className, children, ...props }) => {
+                        const isCodeBlock = /language-(\w+)/.test(
+                          className || ''
+                        )
+                        return isCodeBlock ? (
+                          <code
+                            className={className}
+                            {...props}>
+                            {children}
+                          </code>
                         ) : (
                           <code
                             className="bg-muted px-1 py-0.5 rounded text-sm"
@@ -327,10 +546,51 @@ export default function PostCreatePage() {
                             {children}
                           </code>
                         )
-                      }
+                      },
+                      // 인용문 스타일링
+                      blockquote: ({ children, ...props }) => (
+                        <blockquote
+                          className="border-l-4 border-primary/20 bg-muted/30 pl-4 py-2 italic"
+                          {...props}>
+                          {children}
+                        </blockquote>
+                      ),
+                      // 이미지 반응형 처리
+                      img: ({ alt, ...props }) => (
+                        <img
+                          className="max-w-full h-auto rounded-lg"
+                          alt={alt || '이미지'}
+                          {...props}
+                        />
+                      ),
+                      // 링크 외부 열기 설정
+                      a: ({ href, children, ...props }) => (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                          {...props}>
+                          {children}
+                        </a>
+                      ),
+                      // 문단 처리 - 개행 보존
+                      p: ({ children, ...props }) => (
+                        <p
+                          className="whitespace-pre-wrap leading-relaxed"
+                          {...props}>
+                          {children}
+                        </p>
+                      )
                     }}>
-                    {watchedValues.content ||
-                      '*내용을 입력하면 여기에 미리보기가 표시됩니다.*'}
+                    {(() => {
+                      const content =
+                        watchedValues.content ||
+                        '*내용을 입력하면 여기에 미리보기가 표시됩니다.*'
+
+                      // 마크다운 개행 처리 적용
+                      return processMarkdownLineBreaks(content)
+                    })()}
                   </ReactMarkdown>
                 </div>
               </CardContent>
