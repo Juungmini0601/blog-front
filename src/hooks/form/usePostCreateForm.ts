@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCallback } from 'react'
 import { usePostAPI } from '../usePost'
-import useUserAPI from '../useUser'
 import { useNavigate } from 'react-router'
 import { useModalStore } from '@/store/modalStore'
 
