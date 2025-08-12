@@ -1,19 +1,5 @@
 import usePostCreateForm from '@/hooks/form/usePostCreateForm'
-import { useCallback, useRef } from 'react'
-import {
-  Bold,
-  Italic,
-  Link,
-  Code,
-  ImageIcon,
-  Save,
-  Globe,
-  Lock,
-  Heading1,
-  Heading2,
-  Heading3,
-  List
-} from 'lucide-react'
+import { Save, Globe, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -32,14 +18,12 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
+import MarkDownEditor from '@/components/MarkDownEditor'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github.css'
-import useImage from '@/hooks/useImage'
-import { ResultType } from '@/api/index'
 
 // 더미 시리즈 데이터
 const seriesList = [
@@ -54,206 +38,11 @@ export default function PostCreatePage() {
     usePostCreateForm()
   const watchedValues = watch()
 
-  // 텍스트 영역 참조 (마크다운 에디터용)
-  const { ref: content_rhf_ref, ...content_register } = register('content')
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
-
-  // 이미지 업로드 훅
-  const { imageUploadMutation } = useImage()
-
-  /**
-   * 마크다운 문법 삽입 함수
-   * 선택된 텍스트를 지정된 마크다운 문법으로 감싸는 기능
-   */
-  const insertMarkdown = useCallback(
-    (before: string, after: string = '') => {
-      const textarea = textareaRef.current
-      if (!textarea) return
-
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const selectedText = textarea.value.substring(start, end)
-      const newText = before + selectedText + after
-
-      const newValue =
-        textarea.value.substring(0, start) +
-        newText +
-        textarea.value.substring(end)
-
-      setValue('content', newValue)
-
-      // 커서 위치 조정 (삽입된 텍스트 내부로 이동)
-      setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(
-          start + before.length,
-          start + before.length + selectedText.length
-        )
-      }, 0)
-    },
-    [setValue]
-  )
-
-  /**
-   * 줄 단위 접두사 삽입 함수
-   * 헤딩(#), 리스트(-) 등을 각 줄 앞에 추가하는 기능
-   */
-  const insertLinePrefix = useCallback(
-    (prefix: string) => {
-      const textarea = textareaRef.current
-      if (!textarea) return
-
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const value = textarea.value
-
-      const beforeSelection = value.slice(0, start)
-      const selection = value.slice(start, end)
-      const afterSelection = value.slice(end)
-
-      // 선택된 텍스트를 줄 단위로 분리하여 각 줄에 접두사 추가
-      const lines = selection.split('\n')
-      const prefixedLines = lines.map(line => prefix + line)
-      const newSelection = prefixedLines.join('\n')
-
-      const newValue = beforeSelection + newSelection + afterSelection
-      setValue('content', newValue)
-
-      setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start, start + newSelection.length)
-      }, 0)
-    },
-    [setValue]
-  )
-
-  /**
-   * 커서 위치에 텍스트 삽입 함수
-   * 이미지 URL 등을 현재 커서 위치에 삽입하는 기능
-   */
-  const insertTextAtCursor = useCallback(
-    (text: string) => {
-      const textarea = textareaRef.current
-      if (!textarea) return
-
-      const start = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const value = textarea.value
-
-      const newValue = value.substring(0, start) + text + value.substring(end)
-      setValue('content', newValue)
-
-      setTimeout(() => {
-        const newCursor = start + text.length
-        textarea.focus()
-        textarea.setSelectionRange(newCursor, newCursor)
-      }, 0)
-    },
-    [setValue]
-  )
-
-  // 마크다운 에디터 툴바 버튼 설정
-  const toolbarActions = [
-    {
-      icon: Heading1,
-      action: () => insertLinePrefix('# '),
-      tooltip: '제목 1'
-    },
-    {
-      icon: Heading2,
-      action: () => insertLinePrefix('## '),
-      tooltip: '제목 2'
-    },
-    {
-      icon: Heading3,
-      action: () => insertLinePrefix('### '),
-      tooltip: '제목 3'
-    },
-    {
-      icon: Bold,
-      action: () => insertMarkdown('**', '**'),
-      tooltip: '굵게'
-    },
-    {
-      icon: Italic,
-      action: () => insertMarkdown('*', '*'),
-      tooltip: '기울임'
-    },
-    {
-      icon: Code,
-      action: () => insertMarkdown('`', '`'),
-      tooltip: '인라인 코드'
-    },
-    {
-      icon: Link,
-      action: () => insertMarkdown('[링크 텍스트](', ')'),
-      tooltip: '링크'
-    },
-    {
-      icon: List,
-      action: () => insertLinePrefix('- '),
-      tooltip: '목록'
-    },
-    {
-      icon: ImageIcon,
-      action: () => insertMarkdown('![이미지 설명](', ')'),
-      tooltip: '이미지'
-    }
-  ]
+  // content 필드는 RHF 기본값이 있으므로 setValue로 제어 가능
 
   // 선택된 시리즈 정보
   const selectedSeries = seriesList.find(
     series => series.id === watchedValues.seriesId
-  )
-
-  /**
-   * 클립보드 이미지 붙여넣기 처리 함수
-   * 이미지를 클립보드에서 붙여넣으면 자동으로 업로드하고 마크다운 삽입
-   */
-  const handlePaste = useCallback(
-    async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      try {
-        const items = e.clipboardData?.items
-        if (!items) return
-
-        // 클립보드 아이템 중 이미지 파일 찾기
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i]
-          if (item.kind === 'file' && item.type.startsWith('image/')) {
-            e.preventDefault()
-            const file = item.getAsFile()
-            if (!file) continue
-
-            // 이미지 업로드 URL 발급
-            const uploadResult = await imageUploadMutation.mutateAsync(
-              file.name
-            )
-            if (
-              uploadResult.result !== ResultType.SUCCESS ||
-              !uploadResult.data
-            ) {
-              throw new Error('이미지 업로드 URL 생성 실패')
-            }
-
-            // 실제 파일 업로드 (S3 등)
-            await fetch(uploadResult.data.uploadUrl, {
-              method: 'PUT',
-              headers: { 'Content-Type': file.type },
-              body: file
-            })
-
-            // 마크다운 이미지 문법으로 삽입
-            const markdownImage = `![이미지](${uploadResult.data.accessUrl})`
-            insertTextAtCursor(markdownImage)
-            break
-          }
-        }
-      } catch (error) {
-        console.error('이미지 붙여넣기 오류:', error)
-        alert('이미지 붙여넣기 중 오류가 발생했습니다. 다시 시도해 주세요.')
-      }
-    },
-    [imageUploadMutation, insertTextAtCursor]
   )
 
   return (
@@ -353,53 +142,22 @@ export default function PostCreatePage() {
               </CardContent>
             </Card>
 
-            {/* 내용 작성 카드 TODO 컴포넌트 분리 */}
+            {/* 내용 작성 카드 */}
             <Card>
               <CardHeader>
                 <CardTitle>내용 작성</CardTitle>
-                {/* 마크다운 에디터 툴바 */}
-                <div className="flex items-center gap-1 pt-2 border-t">
-                  {toolbarActions.map((action, index) => (
-                    <Button
-                      key={index}
-                      variant="ghost"
-                      size="sm"
-                      onClick={action.action}
-                      title={action.tooltip}>
-                      <action.icon className="h-4 w-4" />
-                    </Button>
-                  ))}
-                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <Textarea
-                    id="content"
-                    placeholder="마크다운으로 내용을 작성하세요..."
-                    className={`min-h-[400px] font-mono whitespace-pre-wrap resize-none leading-relaxed ${errors.content ? 'border-destructive' : ''}`}
-                    style={{
-                      lineHeight: '1.6',
-                      wordWrap: 'break-word',
-                      whiteSpace: 'pre-wrap'
-                    }}
-                    {...content_register}
-                    ref={el => {
-                      if (typeof content_rhf_ref === 'function') {
-                        content_rhf_ref(el)
-                      } else if (content_rhf_ref) {
-                        // @ts-expect-error: 타입 호환성 문제 해결
-                        content_rhf_ref.current = el
-                      }
-                      textareaRef.current = el
-                    }}
-                    onPaste={handlePaste}
-                  />
-                  {errors.content && (
-                    <p className="text-sm text-destructive">
-                      {errors.content.message}
-                    </p>
-                  )}
-                </div>
+                <MarkDownEditor
+                  value={watchedValues.content}
+                  onChange={v =>
+                    setValue('content', v, {
+                      shouldValidate: true,
+                      shouldDirty: true
+                    })
+                  }
+                  errorMessage={errors.content?.message}
+                />
               </CardContent>
               <CardFooter>
                 <Button
