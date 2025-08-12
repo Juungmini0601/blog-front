@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch'
 import MarkDownEditor from '@/components/MarkDownEditor'
 import MarkdownPreview from '@/components/MarkdownPreview'
 
-// 더미 시리즈 데이터
+// TODO 변경 예정 더미 시리즈 데이터
 const seriesList = [
   { id: 1, name: 'React 심화 학습' },
   { id: 2, name: 'TypeScript 완전 정복' },
@@ -33,8 +33,6 @@ export default function PostCreatePage() {
   const { register, handleSubmit, watch, setValue, errors, onSubmit } =
     usePostCreateForm()
   const watchedValues = watch()
-
-  // content 필드는 RHF 기본값이 있으므로 setValue로 제어 가능
 
   // 선택된 시리즈 정보
   const selectedSeries = seriesList.find(

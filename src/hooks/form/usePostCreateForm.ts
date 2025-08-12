@@ -2,6 +2,10 @@ import { type SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCallback } from 'react'
+import { usePostAPI } from '../usePost'
+import useUserAPI from '../useUser'
+import { useNavigate } from 'react-router'
+import { useModalStore } from '@/store/modalStore'
 
 const createPostFormSchema = z.object({
   title: z
@@ -36,10 +40,27 @@ export default function usePostCreateForm() {
       seriesId: undefined
     }
   })
-  // TODO mutation 추가
-  const onSubmit: SubmitHandler<CreatePostFormSchema> = useCallback(values => {
-    console.log(values)
-  }, [])
+
+  const { createPostMutation } = usePostAPI()
+  const navigate = useNavigate()
+  const { openModal } = useModalStore()
+
+  const onSubmit: SubmitHandler<CreatePostFormSchema> = useCallback(
+    values => {
+      createPostMutation.mutate(values, {
+        onSuccess: () => {
+          navigate('/')
+        },
+        onError: () => {
+          openModal(
+            '에러',
+            '게시글 생성에 실패했습니다. 잠시후 다시 시도 해주세요'
+          )
+        }
+      })
+    },
+    [createPostMutation, navigate, openModal]
+  )
 
   return {
     register,

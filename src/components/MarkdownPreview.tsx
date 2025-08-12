@@ -6,21 +6,9 @@ import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github.css'
 
 export interface MarkdownPreviewProps {
-  /**
-   * 렌더링할 마크다운 콘텐츠
-   */
   content: string
-  /**
-   * 콘텐츠가 비어있을 때 보여줄 플레이스홀더 (선택)
-   */
   placeholder?: string
-  /**
-   * 외부에서 컨테이너 클래스명을 추가하고 싶은 경우
-   */
   className?: string
-  /**
-   * 외부에서 컨테이너 인라인 스타일을 오버라이드하고 싶은 경우
-   */
   style?: React.CSSProperties
 }
 
