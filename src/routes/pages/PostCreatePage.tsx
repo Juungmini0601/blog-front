@@ -1,5 +1,5 @@
 import usePostCreateForm from '@/hooks/form/usePostCreateForm'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import {
   Bold,
   Italic,
@@ -7,7 +7,6 @@ import {
   Code,
   ImageIcon,
   Save,
-  Eye,
   Globe,
   Lock,
   Heading1,
@@ -16,7 +15,13 @@ import {
   List
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
@@ -45,10 +50,6 @@ const seriesList = [
 ]
 
 export default function PostCreatePage() {
-  // 미리보기 모드 상태 (모바일에서 에디터/미리보기 전환용)
-  const [isPreviewMode, setIsPreviewMode] = useState(false)
-
-  // 폼 상태 관리
   const { register, handleSubmit, watch, setValue, errors, onSubmit } =
     usePostCreateForm()
   const watchedValues = watch()
@@ -257,43 +258,12 @@ export default function PostCreatePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* 상단 헤더 */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">새 글 작성</h1>
-            <div className="flex items-center gap-2">
-              {/* 모바일용 미리보기 전환 버튼 */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsPreviewMode(!isPreviewMode)}
-                className="xl:hidden">
-                <Eye className="h-4 w-4 mr-2" />
-                {isPreviewMode ? '편집' : '미리보기'}
-              </Button>
-              {/* 저장 버튼 */}
-              <Button
-                variant="outline"
-                onClick={handleSubmit(onSubmit)}>
-                <Save className="h-4 w-4 mr-2" />
-                저장
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* 좌측 에디터 영역 */}
-          <div
-            className={`xl:col-span-7 space-y-6 ${isPreviewMode ? 'hidden xl:block' : ''}`}>
+          <div className="xl:col-span-7 space-y-6">
             {/* 글 메타정보 입력 카드 */}
             <Card>
-              <CardHeader>
-                <CardTitle>글 정보</CardTitle>
-              </CardHeader>
               <CardContent className="space-y-4">
                 {/* 제목 입력 */}
                 <div className="space-y-2">
@@ -383,7 +353,7 @@ export default function PostCreatePage() {
               </CardContent>
             </Card>
 
-            {/* 내용 작성 카드 */}
+            {/* 내용 작성 카드 TODO 컴포넌트 분리 */}
             <Card>
               <CardHeader>
                 <CardTitle>내용 작성</CardTitle>
@@ -414,7 +384,6 @@ export default function PostCreatePage() {
                     }}
                     {...content_register}
                     ref={el => {
-                      // React Hook Form의 ref와 로컬 ref를 병합
                       if (typeof content_rhf_ref === 'function') {
                         content_rhf_ref(el)
                       } else if (content_rhf_ref) {
@@ -432,20 +401,25 @@ export default function PostCreatePage() {
                   )}
                 </div>
               </CardContent>
+              <CardFooter>
+                <Button
+                  variant="outline"
+                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                  onClick={handleSubmit(onSubmit)}>
+                  <Save className="h-4 w-4 mr-2" />
+                  저장
+                </Button>
+              </CardFooter>
             </Card>
           </div>
 
           {/* 우측 미리보기 영역 */}
-          <div
-            className={`xl:col-span-5 ${!isPreviewMode ? 'hidden xl:block' : ''}`}>
+          <div className="xl:col-span-5">
             <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle>미리보기</CardTitle>
-              </CardHeader>
               <CardContent className="space-y-4">
                 {/* 글 메타정보 미리보기 */}
                 <div className="space-y-2 pb-4 border-b">
-                  <h1 className="text-2xl font-bold">
+                  <h1 className="text-2xl font-bold text-primary">
                     {watchedValues.title || '제목을 입력하세요'}
                   </h1>
 
@@ -484,12 +458,71 @@ export default function PostCreatePage() {
                   </div>
                 </div>
 
-                {/* 마크다운 미리보기 */}
-                <div className="prose dark:prose-invert max-w-none">
+                {/* 마크다운 미리보기 TODO 컴포넌트 분리 */}
+                <div
+                  className="prose dark:prose-invert max-w-none"
+                  style={{
+                    fontFamily:
+                      '"FC Script","Kosugi Maru","FC Sans","Noto Sans SC","Noto Sans TC","Noto Sans JP",ui-rounded,system-ui-rounded,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text","SF UI Text","Segoe UI","Segoe UI Emoji",Roboto,Meiryo,"Microsoft YaHei","Microsoft YaHei UI","Microsoft JhengHei","Microsoft JhengHei UI","Apple SD Gothic Neo",NanumGothic,"나눔고딕","Malgun Gothic","맑은 고딕",fantasy',
+                    fontSize: '16px',
+                    lineHeight: '1.7'
+                  }}>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkBreaks]}
                     rehypePlugins={[rehypeHighlight]}
                     components={{
+                      // 제목 스타일링 (h1-h6)
+                      h1: ({ children, ...props }) => (
+                        <h1
+                          className="text-3xl font-bold mb-4 mt-6 first:mt-0 text-primary"
+                          {...props}>
+                          {children}
+                        </h1>
+                      ),
+                      h2: ({ children, ...props }) => (
+                        <h2
+                          className="text-2xl font-bold mb-3 mt-5 text-primary"
+                          {...props}>
+                          {children}
+                        </h2>
+                      ),
+                      h3: ({ children, ...props }) => (
+                        <h3
+                          className="text-xl font-bold mb-2 mt-4 text-primary"
+                          {...props}>
+                          {children}
+                        </h3>
+                      ),
+                      h4: ({ children, ...props }) => (
+                        <h4
+                          className="text-lg font-bold mb-2 mt-3 text-primary"
+                          {...props}>
+                          {children}
+                        </h4>
+                      ),
+                      h5: ({ children, ...props }) => (
+                        <h5
+                          className="text-base font-bold mb-1 mt-3 text-primary"
+                          {...props}>
+                          {children}
+                        </h5>
+                      ),
+                      h6: ({ children, ...props }) => (
+                        <h6
+                          className="text-sm font-bold mb-1 mt-2 text-primary"
+                          {...props}>
+                          {children}
+                        </h6>
+                      ),
+                      // 볼드 텍스트 스타일링
+                      strong: ({ children, ...props }) => (
+                        <strong
+                          style={{ backgroundColor: '#d9ff7d' }}
+                          className="font-bold px-1 py-0.5 rounded"
+                          {...props}>
+                          {children}
+                        </strong>
+                      ),
                       // 코드 블록 스타일링
                       code: ({ className, children, ...props }) => {
                         const isCodeBlock = /language-(\w+)/.test(
@@ -503,7 +536,7 @@ export default function PostCreatePage() {
                           </code>
                         ) : (
                           <code
-                            className="bg-muted px-1 py-0.5 rounded text-sm"
+                            className="bg-muted px-1 py-0.5 rounded text-sm text-primary"
                             {...props}>
                             {children}
                           </code>
@@ -525,13 +558,14 @@ export default function PostCreatePage() {
                           {...props}
                         />
                       ),
-                      // 링크 외부 열기 설정
+                      // 링크 스타일링
                       a: ({ href, children, ...props }) => (
                         <a
                           href={href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary hover:underline"
+                          style={{ color: '#01329d' }}
+                          className="hover:brightness-125 transition-all duration-200 underline"
                           {...props}>
                           {children}
                         </a>
@@ -543,6 +577,86 @@ export default function PostCreatePage() {
                           {...props}>
                           {children}
                         </p>
+                      ),
+                      // 순서 없는 리스트 (ul)
+                      ul: ({ children, ...props }) => (
+                        <ul
+                          className="list-disc pl-6 mb-3 space-y-1"
+                          {...props}>
+                          {children}
+                        </ul>
+                      ),
+                      // 순서 있는 리스트 (ol)
+                      ol: ({ children, ...props }) => (
+                        <ol
+                          className="list-decimal pl-6 mb-3 space-y-1"
+                          {...props}>
+                          {children}
+                        </ol>
+                      ),
+                      // 리스트 아이템 (li)
+                      li: ({ children, ...props }) => (
+                        <li
+                          className="leading-relaxed"
+                          {...props}>
+                          {children}
+                        </li>
+                      ),
+                      // 테이블
+                      table: ({ children, ...props }) => (
+                        <div className="overflow-x-auto mb-4">
+                          <table
+                            className="min-w-full border-collapse border border-border"
+                            {...props}>
+                            {children}
+                          </table>
+                        </div>
+                      ),
+                      thead: ({ children, ...props }) => (
+                        <thead
+                          className="bg-muted"
+                          {...props}>
+                          {children}
+                        </thead>
+                      ),
+                      tbody: ({ children, ...props }) => (
+                        <tbody {...props}>{children}</tbody>
+                      ),
+                      tr: ({ children, ...props }) => (
+                        <tr
+                          className="border-b border-border"
+                          {...props}>
+                          {children}
+                        </tr>
+                      ),
+                      th: ({ children, ...props }) => (
+                        <th
+                          className="border border-border px-3 py-2 text-left font-semibold"
+                          {...props}>
+                          {children}
+                        </th>
+                      ),
+                      td: ({ children, ...props }) => (
+                        <td
+                          className="border border-border px-3 py-2"
+                          {...props}>
+                          {children}
+                        </td>
+                      ),
+                      // 수평선
+                      hr: ({ ...props }) => (
+                        <hr
+                          className="my-6 border-t border-border"
+                          {...props}
+                        />
+                      ),
+                      // 프리포맷 텍스트 (코드 블록 컨테이너)
+                      pre: ({ children, ...props }) => (
+                        <pre
+                          className="bg-muted p-4 rounded-lg overflow-x-auto mb-4 text-sm"
+                          {...props}>
+                          {children}
+                        </pre>
                       )
                     }}>
                     {watchedValues.content ||

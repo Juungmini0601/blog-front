@@ -152,7 +152,7 @@ export default function SettingsPage() {
                     onConfirm={handleConfirmDelete}
                     trigger={
                       <Button
-                        variant="destructive"
+                        variant="outline"
                         className="flex-1 cursor-pointer"
                         disabled={deleteUserMutation.isPending}>
                         {deleteUserMutation.isPending && (

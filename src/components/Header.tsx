@@ -45,7 +45,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className="text-xl font-bold hover:text-primary transition-colors">
+            className="text-xl font-bold text-primary">
             Blog
           </Link>
 
