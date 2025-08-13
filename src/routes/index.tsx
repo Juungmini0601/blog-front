@@ -9,6 +9,8 @@ import { GlobalModal } from '@/components/GlobalModal.tsx'
 import PostListPage from '@/routes/pages/PostListPage.tsx'
 import SettingsPage from '@/routes/pages/Settings.tsx'
 import PostCreatePage from '@/routes/pages/PostCreatePage.tsx'
+import PostDetailPage from './pages/PostDetailPage'
+import PostUpdatePage from '@/routes/pages/PostUpdatePage.tsx'
 
 const router = createBrowserRouter([
   {
@@ -33,6 +35,14 @@ const router = createBrowserRouter([
       {
         path: '/post/create',
         element: <PostCreatePage />
+      },
+      {
+        path: '/post/:postId',
+        element: <PostDetailPage />
+      },
+      {
+        path: '/posts/:postId/update',
+        element: <PostUpdatePage />
       }
     ]
   }
