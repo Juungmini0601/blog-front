@@ -30,6 +30,12 @@ export interface ApiResponse<T = any> {
   error: ErrorMessage | null
 }
 
+export interface CursorResponse<T = any, U = any> {
+  data: T[]
+  nextCursor: U
+  hasNext: boolean
+}
+
 class ApiClient {
   private axiosInstance: AxiosInstance
 
@@ -45,6 +51,14 @@ class ApiClient {
   }
 
   async get<T = any>(url: string, params?: any): Promise<ApiResponse<T>> {
+    const response = await this.axiosInstance.get(url, { params })
+    return response.data
+  }
+
+  async getCursor<T = any, U = any>(
+    url: string,
+    params?: any
+  ): Promise<CursorResponse<T, U>> {
     const response = await this.axiosInstance.get(url, { params })
     return response.data
   }
