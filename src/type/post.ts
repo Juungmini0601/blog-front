@@ -48,6 +48,7 @@ export interface PostItem {
   postId: number
   thumbnailUrl: string | null
   createdAt: string
+  title?: string
   content: string
   userId: number
   nickname: string
