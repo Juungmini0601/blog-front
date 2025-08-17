@@ -12,6 +12,8 @@ import PostCreatePage from '@/routes/pages/PostCreatePage.tsx'
 import PostDetailPage from './pages/PostDetailPage'
 import PostUpdatePage from '@/routes/pages/PostUpdatePage.tsx'
 import MyBlogPage from '@/routes/pages/MyBlogPage.tsx'
+import SeriesCreatePage from '@/routes/pages/SeriesCreatePage.tsx'
+import SeriesEditPage from '@/routes/pages/SeriesEditPage.tsx'
 
 const router = createBrowserRouter([
   {
@@ -48,6 +50,14 @@ const router = createBrowserRouter([
       {
         path: '/blog/:userId/posts',
         element: <MyBlogPage />
+      },
+      {
+        path: '/series/create',
+        element: <SeriesCreatePage />
+      },
+      {
+        path: '/series/:seriesId/edit',
+        element: <SeriesEditPage />
       }
     ]
   }
