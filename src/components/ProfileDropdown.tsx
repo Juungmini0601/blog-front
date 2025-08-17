@@ -1,4 +1,4 @@
-import { BookOpen, FileText, LogOut, Settings, User } from 'lucide-react'
+import { LogOut, Settings, User } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,24 +50,25 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
             <span>내 블로그</span>
           </Link>
         </DropdownMenuItem>
+        {/* TODO 개발 예정 */}
+        {/*<DropdownMenuItem asChild>*/}
+        {/*  <Link*/}
+        {/*    to="/drafts"*/}
+        {/*    className="cursor-pointer">*/}
+        {/*    <FileText className="mr-2 h-4 w-4" />*/}
+        {/*    <span>임시 글</span>*/}
+        {/*  </Link>*/}
+        {/*</DropdownMenuItem>*/}
 
-        <DropdownMenuItem asChild>
-          <Link
-            to="/drafts"
-            className="cursor-pointer">
-            <FileText className="mr-2 h-4 w-4" />
-            <span>임시 글</span>
-          </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem asChild>
-          <Link
-            to="/post/lists/read"
-            className="cursor-pointer">
-            <BookOpen className="mr-2 h-4 w-4" />
-            <span>읽기 목록</span>
-          </Link>
-        </DropdownMenuItem>
+        {/* TODO 개발 예정*/}
+        {/*<DropdownMenuItem asChild>*/}
+        {/*  <Link*/}
+        {/*    to="/post/lists/read"*/}
+        {/*    className="cursor-pointer">*/}
+        {/*    <BookOpen className="mr-2 h-4 w-4" />*/}
+        {/*    <span>읽기 목록</span>*/}
+        {/*  </Link>*/}
+        {/*</DropdownMenuItem>*/}
 
         <DropdownMenuItem asChild>
           <Link

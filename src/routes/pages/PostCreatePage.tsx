@@ -1,5 +1,5 @@
 import usePostCreateForm from '@/hooks/form/usePostCreateForm'
-import { Save, Globe, Lock } from 'lucide-react'
+import { Globe, Lock, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -98,9 +98,14 @@ export default function PostCreatePage() {
                       <SelectValue placeholder="시리즈를 선택하세요" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">시리즈 없음</SelectItem>
+                      <SelectItem
+                        className="cursor-pointer"
+                        value="none">
+                        시리즈 없음
+                      </SelectItem>
                       {seriesList.map(series => (
                         <SelectItem
+                          className="cursor-pointer"
                           key={series.id}
                           value={series.id.toString()}>
                           {series.name}
@@ -111,7 +116,7 @@ export default function PostCreatePage() {
                 </div>
 
                 {/* 공개/비공개 설정 */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 cursor-pointer">
                   <Switch
                     id="isPublic"
                     checked={watchedValues.isPublic}

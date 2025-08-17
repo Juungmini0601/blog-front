@@ -11,6 +11,7 @@ import SettingsPage from '@/routes/pages/Settings.tsx'
 import PostCreatePage from '@/routes/pages/PostCreatePage.tsx'
 import PostDetailPage from './pages/PostDetailPage'
 import PostUpdatePage from '@/routes/pages/PostUpdatePage.tsx'
+import MyBlogPage from '@/routes/pages/MyBlogPage.tsx'
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
       {
         path: '/posts/:postId/update',
         element: <PostUpdatePage />
+      },
+      {
+        path: '/blog/:userId/posts',
+        element: <MyBlogPage />
       }
     ]
   }

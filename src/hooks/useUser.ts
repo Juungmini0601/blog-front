@@ -53,3 +53,16 @@ function useUserAPI() {
 }
 
 export default useUserAPI
+
+// 특정 유저 정보를 조회하는 훅
+export function useGetUserById(userId?: number) {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId) throw new Error('유효하지 않은 사용자 식별자입니다.')
+      const response = await getUser(userId)
+      return response.data
+    },
+    enabled: !!userId
+  })
+}

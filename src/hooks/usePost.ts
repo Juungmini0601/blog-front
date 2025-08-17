@@ -5,15 +5,21 @@ import {
   useQueryClient
 } from '@tanstack/react-query'
 import {
+  deleteLike,
   deletePost,
   getPostDetail,
+  getPosts,
+  getSeriesPosts,
+  getUserPosts,
   postCreatePost,
+  postLike,
   putUpdatePost
 } from '@/api/post'
-import { deleteLike, postLike } from '@/api/post'
-import { getPosts } from '@/api/post'
-import type { PostItem } from '@/type/post'
-import type { CreatePostRequest, UpdatePostRequest } from '@/type/post'
+import type {
+  CreatePostRequest,
+  PostItem,
+  UpdatePostRequest
+} from '@/type/post'
 
 function useCreatePost() {
   return useMutation({
@@ -92,10 +98,54 @@ function useInfinitePosts() {
   })
 }
 
+function useInfiniteUserPosts(userId: number) {
+  return useInfiniteQuery<{
+    data: PostItem[]
+    nextCursor: number
+    hasNext: boolean
+  }>({
+    queryKey: ['posts', 'user', userId, 'infinite'],
+    queryFn: async ({ pageParam }) => {
+      const response = await getUserPosts({
+        userId,
+        lastPostId: pageParam as number | undefined
+      })
+      return response
+    },
+    initialPageParam: undefined,
+    getNextPageParam: lastPage =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
+    enabled: !!userId // userId가 있을 때만 쿼리 실행
+  })
+}
+
+function useInfiniteSeriesPosts(seriesId: number) {
+  return useInfiniteQuery<{
+    data: PostItem[]
+    nextCursor: number
+    hasNext: boolean
+  }>({
+    queryKey: ['posts', 'series', seriesId, 'infinite'],
+    queryFn: async ({ pageParam }) => {
+      const response = await getSeriesPosts({
+        seriesId,
+        lastPostId: pageParam as number | undefined
+      })
+      return response
+    },
+    initialPageParam: undefined,
+    getNextPageParam: lastPage =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
+    enabled: !!seriesId // seriesId가 있을 때만 쿼리 실행
+  })
+}
+
 export {
   usePostAPI,
   useDeletePost,
   useGetPostDetail,
   useUpdatePost,
-  useInfinitePosts
+  useInfinitePosts,
+  useInfiniteUserPosts,
+  useInfiniteSeriesPosts
 }

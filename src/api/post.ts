@@ -2,9 +2,11 @@ import type {
   CreatePostRequest,
   CreatePostResponse,
   GetPostResponse,
-  UpdatePostRequest,
+  GetPostsParams,
+  GetSeriesPostsParams,
+  GetUserPostsParams,
   PostItem,
-  GetPostsParams
+  UpdatePostRequest
 } from '@/type/post'
 import { apiClient } from '@/api/index'
 
@@ -26,13 +28,25 @@ async function putUpdatePost(postId: number, request: UpdatePostRequest) {
 
 export { postCreatePost, getPostDetail, deletePost, putUpdatePost }
 
-// 게시글 목록 (커서 기반) 조회 API
 async function getPosts(params?: GetPostsParams) {
-  // 서버는 lastPostId 파라미터를 사용함
   return apiClient.getCursor<PostItem, number>('/v1/posts', params)
 }
 
-export { getPosts }
+async function getUserPosts(params: GetUserPostsParams) {
+  return apiClient.getCursor<PostItem, number>(
+    `/v1/posts/users/${params.userId}`,
+    params
+  )
+}
+
+async function getSeriesPosts(params: GetSeriesPostsParams) {
+  return apiClient.getCursor<PostItem, number>(
+    `/v1/posts/series/${params.seriesId}`,
+    params
+  )
+}
+
+export { getPosts, getUserPosts, getSeriesPosts }
 
 // 게시글 좋아요 추가
 async function postLike(postId: number) {

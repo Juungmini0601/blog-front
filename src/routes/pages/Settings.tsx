@@ -35,7 +35,6 @@ export default function SettingsPage() {
   const { imageUploadMutation } = useImage()
   const profileImageUrl = watch('profileImageUrl')
 
-  // 프로필 이미지 관리
   const handleImageUpload = async (file: File) => {
     const uploadResponse = await imageUploadMutation.mutateAsync(file.name)
 

@@ -44,7 +44,6 @@ export interface UpdatePostRequest {
   seriesId?: number
 }
 
-// 게시글 목록 아이템 타입
 export interface PostItem {
   postId: number
   thumbnailUrl: string | null
@@ -57,8 +56,16 @@ export interface PostItem {
   likeCount: number
 }
 
-// 게시글 목록 조회 파라미터 (커서 기반)
 export interface GetPostsParams {
-  // 서버가 요구하는 커서 파라미터 이름: lastPostId
+  lastPostId?: number
+}
+
+export interface GetUserPostsParams {
+  userId: number
+  lastPostId?: number
+}
+
+export interface GetSeriesPostsParams {
+  seriesId: number
   lastPostId?: number
 }
