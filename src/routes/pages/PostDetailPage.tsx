@@ -212,11 +212,17 @@ function PostDetail({
       <div className="mt-8 space-y-6">
         <div className="flex items-center justify-between">
           {data.isLiked ? (
-            <Button onClick={handleUnlikePost}>
+            <Button
+              onClick={handleUnlikePost}
+              className="cursor-pointer">
               좋아요 취소 {data.likeCount}
             </Button>
           ) : (
-            <Button onClick={handleLikePost}>좋아요 {data.likeCount}</Button>
+            <Button
+              onClick={handleLikePost}
+              className="cursor-pointer">
+              좋아요 {data.likeCount}
+            </Button>
           )}
         </div>
 

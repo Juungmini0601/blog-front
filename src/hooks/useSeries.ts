@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createSeries,
   deleteSeries,
@@ -19,12 +19,18 @@ function useGetUserSeries(userId: number) {
 }
 
 function useCreateSeries() {
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (request: CreateSeriesRequest) => createSeries(request)
+    mutationFn: (request: CreateSeriesRequest) => createSeries(request),
+    onSuccess: () => {
+      // 시리즈 관련 쿼리 전반 무효화 (사용자별 시리즈 목록 포함)
+      queryClient.invalidateQueries({ queryKey: ['series'] })
+    }
   })
 }
 
 function useUpdateSeries() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
       seriesId,
@@ -32,13 +38,20 @@ function useUpdateSeries() {
     }: {
       seriesId: number
       request: CreateSeriesRequest
-    }) => updateSeries(seriesId, request)
+    }) => updateSeries(seriesId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['series'] })
+    }
   })
 }
 
 function useDeleteSeries() {
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (seriesId: number) => deleteSeries(seriesId)
+    mutationFn: (seriesId: number) => deleteSeries(seriesId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['series'] })
+    }
   })
 }
 

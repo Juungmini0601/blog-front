@@ -34,6 +34,7 @@ function useDeletePost() {
 }
 
 function useUpdatePost() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
       postId,
@@ -41,7 +42,15 @@ function useUpdatePost() {
     }: {
       postId: number
       request: UpdatePostRequest
-    }) => putUpdatePost(postId, request)
+    }) => putUpdatePost(postId, request),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['post', 'detail', variables.postId]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['posts']
+      })
+    }
   })
 }
 
@@ -149,3 +158,27 @@ export {
   useInfiniteUserPosts,
   useInfiniteSeriesPosts
 }
+
+function useInfiniteSearchPosts(keyword: string) {
+  return useInfiniteQuery<{
+    data: PostItem[]
+    nextCursor: number
+    hasNext: boolean
+  }>({
+    queryKey: ['posts', 'search', keyword, 'infinite'],
+    queryFn: async ({ pageParam }) => {
+      const { getSearchPosts } = await import('@/api/post')
+      const response = await getSearchPosts({
+        keyword,
+        lastPostItem: pageParam as number | undefined
+      })
+      return response
+    },
+    initialPageParam: undefined,
+    getNextPageParam: lastPage =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
+    enabled: !!keyword
+  })
+}
+
+export { useInfiniteSearchPosts }

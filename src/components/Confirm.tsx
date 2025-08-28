@@ -37,7 +37,7 @@ export default function Confirm({
   const handleConfirm = async () => {
     try {
       setConfirming(true)
-      await Promise.resolve(onConfirm())
+      await onConfirm()
       setOpen(false)
     } finally {
       setConfirming(false)

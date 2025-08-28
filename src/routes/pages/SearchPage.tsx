@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useInfinitePosts } from '@/hooks/usePost'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
+import { useInfiniteSearchPosts } from '@/hooks/usePost'
 
-export default function PostListPage() {
+export default function SearchPage() {
+  const [searchParams] = useSearchParams()
+  const keyword = (searchParams.get('keyword') ?? '').trim()
+
   const {
     data,
     isLoading,
@@ -14,15 +17,13 @@ export default function PostListPage() {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage
-  } = useInfinitePosts()
+  } = useInfiniteSearchPosts(keyword)
 
   const navigate = useNavigate()
   const observer_ref = useRef<HTMLDivElement | null>(null)
 
-  // 플랫 배열로 변환
   const posts = useMemo(() => data?.pages.flatMap(p => p.data) ?? [], [data])
 
-  // 교차 관찰자 콜백
   const handleIntersect = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const is_visible = entries.some(entry => entry.isIntersecting)
@@ -42,14 +43,20 @@ export default function PostListPage() {
     return () => observer.disconnect()
   }, [handleIntersect])
 
+  if (!keyword) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center text-sm text-muted-foreground">
+        검색어를 입력해주세요.
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
           {Array.from({ length: 9 }).map((_, idx) => (
-            <Card
-              key={idx}
-              className="overflow-hidden">
+            <Card key={idx} className="overflow-hidden">
               <Skeleton className="h-40 w-full" />
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center gap-3">
@@ -78,6 +85,7 @@ export default function PostListPage() {
 
   return (
     <div className="mx-auto my-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mb-4 text-sm text-muted-foreground">'{keyword}' 검색 결과</div>
       <div className="grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
         {posts.map(post => (
           <Card
@@ -95,36 +103,24 @@ export default function PostListPage() {
               <div className="aspect-video w-full bg-muted" />
             )}
             <CardContent className="space-y-3 p-4">
-              {/* 제목 */}
               <h3 className="text-base md:text-lg font-semibold leading-snug">
                 {post.title}
               </h3>
-
-              {/* 설명 */}
               <p className="line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">
                 {post.content}
               </p>
-
-              {/* 날짜 */}
               <div className="flex items-center justify-between pt-2 gap-3 text-xs text-muted-foreground">
                 <span>{new Date(post.createdAt).toLocaleString()}</span>
               </div>
-
               <Separator />
-
-              {/* 프로필이미지, url, 작성자, 좋아요 개수 */}
               <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-7 w-7">
                     <AvatarImage src={post.profileImageUrl ?? undefined} />
                     <AvatarFallback>{post.nickname?.[0] ?? 'U'}</AvatarFallback>
                   </Avatar>
-
-                  <span className="font-medium text-foreground">
-                    {post.nickname}
-                  </span>
+                  <span className="font-medium text-foreground">{post.nickname}</span>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <span>댓글 {post.commentCount}</span>
                   <span>좋아요 {post.likeCount}</span>
@@ -134,10 +130,7 @@ export default function PostListPage() {
           </Card>
         ))}
       </div>
-      <div
-        ref={observer_ref}
-        className="h-8"
-      />
+      <div ref={observer_ref} className="h-8" />
       {isFetchingNextPage && (
         <div className="mx-auto mt-4 max-w-xl">
           <Skeleton className="h-6 w-full" />

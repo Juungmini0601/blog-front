@@ -70,3 +70,8 @@ export interface GetSeriesPostsParams {
   seriesId: number
   lastPostId?: number
 }
+
+export interface GetSearchPostsParams {
+  keyword: string
+  lastPostItem?: number
+}

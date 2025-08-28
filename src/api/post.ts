@@ -3,6 +3,7 @@ import type {
   CreatePostResponse,
   GetPostResponse,
   GetPostsParams,
+  GetSearchPostsParams,
   GetSeriesPostsParams,
   GetUserPostsParams,
   PostItem,
@@ -26,8 +27,6 @@ async function putUpdatePost(postId: number, request: UpdatePostRequest) {
   return apiClient.put(`/v1/posts/${postId}`, { ...request })
 }
 
-export { postCreatePost, getPostDetail, deletePost, putUpdatePost }
-
 async function getPosts(params?: GetPostsParams) {
   return apiClient.getCursor<PostItem, number>('/v1/posts', params)
 }
@@ -46,16 +45,27 @@ async function getSeriesPosts(params: GetSeriesPostsParams) {
   )
 }
 
-export { getPosts, getUserPosts, getSeriesPosts }
+async function getSearchPosts(params: GetSearchPostsParams) {
+  return apiClient.getCursor<PostItem, number>('/v1/posts/search', params)
+}
 
-// 게시글 좋아요 추가
 async function postLike(postId: number) {
   return apiClient.post(`/v1/posts/${postId}/like`)
 }
 
-// 게시글 좋아요 취소
 async function deleteLike(postId: number) {
   return apiClient.delete(`/v1/posts/${postId}/like`)
 }
 
-export { postLike, deleteLike }
+export {
+  postLike,
+  deleteLike,
+  getPosts,
+  getUserPosts,
+  getSeriesPosts,
+  getSearchPosts,
+  postCreatePost,
+  getPostDetail,
+  deletePost,
+  putUpdatePost
+}

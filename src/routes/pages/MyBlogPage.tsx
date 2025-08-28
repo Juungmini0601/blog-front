@@ -93,7 +93,7 @@ export default function MyBlogPage() {
               <div className="flex items-center gap-2">
                 <Link
                   to="/series/create"
-                  className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900">
+                  className="text-xs px-2 py-1 cursor-pointer rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900">
                   생성
                 </Link>
                 <button
@@ -104,7 +104,7 @@ export default function MyBlogPage() {
                     }
                   }}
                   disabled={!selectedSeriesId}
-                  className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-900">
+                  className="text-xs px-2 py-1 cursor-pointer rounded border border-gray-300 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-900">
                   수정
                 </button>
               </div>

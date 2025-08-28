@@ -15,22 +15,22 @@ export const ErrorType = {
   NETWORK_ERROR: 'NETWORK_ERROR'
 } as const
 
-export type ResultType = (typeof ResultType)[keyof typeof ResultType]
-export type ErrorType = (typeof ErrorType)[keyof typeof ErrorType]
+export type ResultType = [keyof typeof ResultType]
+export type ErrorType = [keyof typeof ErrorType]
 
 export interface ErrorMessage {
   code: string
   message: string
-  data?: any
+  data?: never
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   result: ResultType
   data: T | null
   error: ErrorMessage | null
 }
 
-export interface CursorResponse<T = any, U = any> {
+export interface CursorResponse<T, U> {
   data: T[]
   nextCursor: U
   hasNext: boolean
@@ -41,7 +41,7 @@ class ApiClient {
 
   constructor() {
     this.axiosInstance = axios.create({
-      baseURL: `http://${import.meta.env.VITE_SERVER_BASE_URL}`,
+      baseURL: `${import.meta.env.VITE_SERVER_BASE_URL}`,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json'
@@ -50,12 +50,12 @@ class ApiClient {
     })
   }
 
-  async get<T = any>(url: string, params?: any): Promise<ApiResponse<T>> {
+  async get<T>(url: string, params?: any): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.get(url, { params })
     return response.data
   }
 
-  async getCursor<T = any, U = any>(
+  async getCursor<T, U>(
     url: string,
     params?: any
   ): Promise<CursorResponse<T, U>> {
@@ -63,22 +63,22 @@ class ApiClient {
     return response.data
   }
 
-  async post<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.post(url, data)
     return response.data
   }
 
-  async put<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async put<T>(url: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.put(url, data)
     return response.data
   }
 
-  async delete<T = any>(url: string): Promise<ApiResponse<T>> {
+  async delete<T>(url: string): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.delete(url)
     return response.data
   }
 
-  async patch<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async patch<T>(url: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.patch(url, data)
     return response.data
   }

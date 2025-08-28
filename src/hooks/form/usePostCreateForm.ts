@@ -22,7 +22,7 @@ const createPostFormSchema = z.object({
 
 type CreatePostFormSchema = z.infer<typeof createPostFormSchema>
 
-export default function usePostCreateForm() {
+export default function usePostCreateForm(opts?: { onSuccess?: () => void }) {
   const {
     register,
     handleSubmit,
@@ -48,6 +48,14 @@ export default function usePostCreateForm() {
     values => {
       createPostMutation.mutate(values, {
         onSuccess: () => {
+          // 외부 후처리(예: 임시 저장 삭제) 호출 후 이동
+          if (opts?.onSuccess) {
+            try {
+              opts.onSuccess()
+            } catch {
+              // no-op: 후처리 실패는 게시글 생성 성공을 방해하지 않음
+            }
+          }
           navigate('/')
         },
         onError: () => {
@@ -58,7 +66,7 @@ export default function usePostCreateForm() {
         }
       })
     },
-    [createPostMutation, navigate, openModal]
+    [createPostMutation, navigate, openModal, opts]
   )
 
   return {
