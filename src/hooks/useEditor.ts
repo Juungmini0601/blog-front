@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react'
 import useImage from '@/hooks/useImage'
-import { ResultType } from '@/api/index'
 import { useModalStore } from '@/store/modalStore'
 
 export interface UseEditorParams {
@@ -122,10 +121,8 @@ export default function useEditor(params: UseEditorParams): UseEditorReturn {
             const uploadResult = await imageUploadMutation.mutateAsync(
               file.name
             )
-            if (
-              uploadResult.result !== ResultType.SUCCESS ||
-              !uploadResult.data
-            ) {
+
+            if (!uploadResult.data) {
               throw new Error('이미지 업로드 URL 생성 실패')
             }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router'
 import {
   useDeletePostDraftMutation,
@@ -25,7 +25,7 @@ export default function PostDraftListPage() {
   const { mutateAsync: deleteDraft, isPending: isDeleting } =
     useDeletePostDraftMutation()
 
-  const drafts = useMemo(() => data?.pages.flatMap(p => p.data) ?? [], [data])
+  const drafts = data?.data
 
   const observerRef = useRef<HTMLDivElement | null>(null)
 
@@ -86,7 +86,7 @@ export default function PostDraftListPage() {
     <div className="mx-auto my-8 max-w-5xl px-4 sm:px-6 lg:px-8">
       <h1 className="mb-4 text-xl font-semibold">임시 저장 목록</h1>
       <div className="grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
-        {drafts.map(draft => (
+        {drafts?.map(draft => (
           <Card
             key={draft.postDraftId}
             className="cursor-pointer overflow-hidden transition hover:shadow-md"
