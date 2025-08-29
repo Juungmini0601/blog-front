@@ -14,7 +14,6 @@ import type {
   PostDraftItem,
   UpdatePostDraftRequest
 } from '@/type/postdraft'
-import type { CursorResponse } from '@/api'
 
 const postDraftKeys = {
   all: ['postdrafts'] as const,
@@ -22,19 +21,18 @@ const postDraftKeys = {
 }
 
 function useInfinitePostDraftsQuery(enabled: boolean = true) {
-  return useInfiniteQuery<
-    CursorResponse<PostDraftItem, number>,
-    Error,
-    CursorResponse<PostDraftItem, number>,
-    ReturnType<typeof postDraftKeys.infinite>,
-    number | undefined
-  >({
+  return useInfiniteQuery<{
+    data: PostDraftItem[]
+    nextCursor: number
+    hasNext: boolean
+  }>({
     queryKey: postDraftKeys.infinite(),
     initialPageParam: undefined as number | undefined,
     queryFn: async ({ pageParam }) => {
-      return getPostDrafts(
-        pageParam !== undefined ? { lastPostDraftId: pageParam } : undefined
-      )
+      const response = await getPostDrafts({
+        lastPostDraftId: pageParam as number | undefined
+      })
+      return response
     },
     enabled,
     getNextPageParam: lastPage =>

@@ -25,7 +25,7 @@ export default function PostDraftListPage() {
   const { mutateAsync: deleteDraft, isPending: isDeleting } =
     useDeletePostDraftMutation()
 
-  const drafts = data?.data
+  const drafts = data?.pages.flatMap(page => page.data)
 
   const observerRef = useRef<HTMLDivElement | null>(null)
 
