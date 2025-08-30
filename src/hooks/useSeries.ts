@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createSeries,
   deleteSeries,
+  getSeries,
   getUserSeries,
   updateSeries
 } from '@/api/series'
@@ -15,6 +16,17 @@ function useGetUserSeries(userId: number) {
       return response.data
     },
     enabled: !!userId
+  })
+}
+
+function useGetSeries(seriesId: number) {
+  return useQuery({
+    queryKey: ['series', seriesId],
+    queryFn: async () => {
+      const response = await getSeries(seriesId)
+      return response.data
+    },
+    enabled: !!seriesId
   })
 }
 
@@ -55,4 +67,10 @@ function useDeleteSeries() {
   })
 }
 
-export { useGetUserSeries, useCreateSeries, useUpdateSeries, useDeleteSeries }
+export {
+  useGetUserSeries,
+  useGetSeries,
+  useCreateSeries,
+  useUpdateSeries,
+  useDeleteSeries
+}

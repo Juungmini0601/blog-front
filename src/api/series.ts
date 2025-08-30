@@ -7,6 +7,12 @@ async function getUserSeries(
   return apiClient.get(`/v1/series/${userId}`)
 }
 
+async function getSeries(
+  seriesId: number
+): Promise<ApiResponse<SeriesItemResponse>> {
+  return apiClient.get(`/v1/series/detail/${seriesId}`)
+}
+
 async function createSeries(request: CreateSeriesRequest) {
   return apiClient.post('/v1/series', { ...request })
 }
@@ -19,4 +25,4 @@ async function deleteSeries(seriesId: number) {
   return apiClient.delete(`/v1/series/${seriesId}`)
 }
 
-export { getUserSeries, createSeries, updateSeries, deleteSeries }
+export { getUserSeries, createSeries, updateSeries, deleteSeries, getSeries }

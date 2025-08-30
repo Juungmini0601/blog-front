@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import {
   Card,
   CardContent,
@@ -7,49 +6,22 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Loader2, Save, Trash2 } from 'lucide-react'
-import useUpdateSeriesForm from '@/hooks/form/useUpdateSeriesForm'
-import useUserAPI from '@/hooks/useUser'
-import { useDeleteSeries, useGetUserSeries } from '@/hooks/useSeries'
 import Confirm from '@/components/Confirm'
+import SeriesNameInput from '@/components/series/SeriesNameInput.tsx'
+import useSeriesEdit from '@/hooks/series/useSeriesEdit.ts'
 
 export default function SeriesEditPage() {
   const { seriesId } = useParams()
-  const navigate = useNavigate()
   const numberSeriesId = Number(seriesId)
-  const { user } = useUserAPI()
 
-  const {
-    register,
-    handleSubmit,
-    errors,
-    isSubmitting,
-    isLoading,
-    onSubmit,
-    setValue
-  } = useUpdateSeriesForm(numberSeriesId)
+  const { isLoading, hasError, formProps, deleteProps } =
+    useSeriesEdit(numberSeriesId)
 
-  const userId = user?.userId ?? 0
-  const {
-    data: seriesList,
-    isLoading: isSeriesLoading,
-    error: seriesError
-  } = useGetUserSeries(userId)
-
-  const currentSeries = useMemo(() => {
-    return (seriesList ?? []).find(s => s.seriesId === numberSeriesId)
-  }, [seriesList, numberSeriesId])
-
-  useEffect(() => {
-    if (currentSeries) {
-      setValue('name', currentSeries.name)
-    }
-  }, [currentSeries, setValue])
-
-  const deleteSeriesMutation = useDeleteSeries()
+  const { register, handleSubmit, errors, isSubmitting, onSubmit } = formProps
+  const { deleteSeriesMutation, onConfirmDelete: handleConfirmDelete } =
+    deleteProps
 
   if (!seriesId || Number.isNaN(numberSeriesId)) {
     return (
@@ -57,25 +29,18 @@ export default function SeriesEditPage() {
     )
   }
 
-  if (isSeriesLoading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-10">불러오는 중입니다...</div>
     )
   }
 
-  if (seriesError || !currentSeries) {
+  if (hasError) {
     return (
       <div className="container mx-auto px-4 py-10">
         시리즈 정보를 불러올 수 없습니다.
       </div>
     )
-  }
-
-  const handleConfirmDelete = async () => {
-    await deleteSeriesMutation.mutateAsync(numberSeriesId)
-    const uid = user?.userId
-    if (uid) navigate(`/blog/${uid}/posts`)
-    else navigate('/')
   }
 
   return (
@@ -87,20 +52,10 @@ export default function SeriesEditPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">시리즈 이름 *</Label>
-              <Input
-                id="name"
-                placeholder="시리즈 이름을 입력하세요"
-                {...register('name')}
-                className={errors.name ? 'border-destructive' : ''}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+            <SeriesNameInput
+              field={register('name')}
+              error={errors.name?.message}
+            />
           </CardContent>
 
           <CardFooter>
@@ -116,6 +71,7 @@ export default function SeriesEditPage() {
                 )}
                 저장
               </Button>
+
               <Confirm
                 title="시리즈 삭제"
                 description="해당 시리즈와 연결된 정보가 영향을 받을 수 있습니다."
