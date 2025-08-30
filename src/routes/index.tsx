@@ -16,6 +16,7 @@ import SeriesCreatePage from '@/routes/pages/SeriesCreatePage.tsx'
 import SeriesEditPage from '@/routes/pages/SeriesEditPage.tsx'
 import SearchPage from '@/routes/pages/SearchPage.tsx'
 import PostDraftListPage from '@/routes/pages/PostDraftListPage.tsx'
+import { requireAuth } from '@/routes/loader/requireAuth.ts'
 
 const router = createBrowserRouter([
   {
@@ -35,10 +36,12 @@ const router = createBrowserRouter([
       },
       {
         path: '/settings',
+        loader: requireAuth,
         element: <SettingsPage />
       },
       {
         path: '/post/create',
+        loader: requireAuth,
         element: <PostCreatePage />
       },
       {
@@ -47,6 +50,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/posts/:postId/update',
+        loader: requireAuth,
         element: <PostUpdatePage />
       },
       {
@@ -55,10 +59,12 @@ const router = createBrowserRouter([
       },
       {
         path: '/series/create',
+        loader: requireAuth,
         element: <SeriesCreatePage />
       },
       {
         path: '/series/:seriesId/edit',
+        loader: requireAuth,
         element: <SeriesEditPage />
       },
       {
