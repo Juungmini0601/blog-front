@@ -19,8 +19,9 @@ export default function UserRegisterPage() {
   return (
     <Card className="max-w-md mx-auto mt-10 shadow-lg">
       <CardHeader>
-        <CardTitle>회원가입</CardTitle>
+        <CardTitle className="text-primary font-bold">회원가입</CardTitle>
       </CardHeader>
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
           <EmailInput
@@ -28,6 +29,7 @@ export default function UserRegisterPage() {
             error={errors.email?.message}
             isLoading={isLoading}
           />
+
           <NicknameInput
             field={register('nickname')}
             error={errors.nickname?.message}
