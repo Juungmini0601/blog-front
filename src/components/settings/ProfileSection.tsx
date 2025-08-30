@@ -3,7 +3,7 @@ import { User } from 'lucide-react'
 import ImageUploader from '@/components/ImageUploader.tsx'
 
 interface ProfileSectionProps {
-  profileImageUrl: string
+  profileImageUrl?: string | null
   handleImageUpload: (file: File) => Promise<void>
   handleImageRemove: () => void
 }

@@ -5,11 +5,10 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import useCreateSeriesForm from '@/hooks/form/useCreateSeriesForm'
 import { Loader2, Save } from 'lucide-react'
+import SeriesNameInput from '@/components/series/SeriesNameInput.tsx'
 
 export default function SeriesCreatePage() {
   const { register, handleSubmit, errors, isSubmitting, onSubmit } =
@@ -23,20 +22,10 @@ export default function SeriesCreatePage() {
             <CardTitle>시리즈 생성</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">시리즈 이름 *</Label>
-              <Input
-                id="name"
-                placeholder="시리즈 이름을 입력하세요"
-                {...register('name')}
-                className={errors.name ? 'border-destructive' : ''}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+            <SeriesNameInput
+              field={register('name')}
+              error={errors?.name?.message}
+            />
           </CardContent>
           <CardFooter>
             <Button
