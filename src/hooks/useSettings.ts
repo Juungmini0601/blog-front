@@ -1,8 +1,9 @@
-import useUserAPI from '@/hooks/useUser.ts'
+import useUserAPI, { LOGIN_USER_KEY } from '@/hooks/useUser.ts'
 import { useNavigate } from 'react-router'
 import useImage from '@/hooks/useImage.ts'
 import { useUserUpdateForm } from '@/hooks/form/useUserUpdateForm.ts'
 import { useEffect } from 'react'
+import queryClient from '@/api/queryClient.ts'
 
 export function useSettings() {
   const { user, deleteUserMutation } = useUserAPI()

@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input.tsx'
 import { Separator } from '@/components/ui/separator.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import Confirm from '@/components/Confirm.tsx'
+import { Loader2 } from 'lucide-react'
+import type { FieldErrors, UseFormRegister } from 'react-hook-form'
 
 interface FormSectionProps {
   register: UseFormRegister<any>
@@ -32,19 +34,19 @@ export default function FormSection({
     <div className="space-y-6">
       <NicknameInput
         field={register('nickname')}
-        error={errors.nickname?.message}
+        error={errors.nickname?.message as string}
         isLoading={isLoading}
       />
 
       <IntroductionInput
         field={register('introduction')}
-        error={errors.introduction?.message}
+        error={errors.introduction?.message as string}
         isLoading={isLoading}
       />
 
       <GithubUrlInput
         field={register('githubUrl')}
-        error={errors.githubUrl?.message}
+        error={errors.githubUrl?.message as string}
         isLoading={isLoading}
       />
 
