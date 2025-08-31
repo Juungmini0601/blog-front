@@ -1,5 +1,5 @@
 import { useDeletePost, useGetPostDetail, usePostAPI } from '@/hooks/usePost'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import MarkdownPreview from '@/components/MarkdownPreview'
 import { format } from 'date-fns'
 import { Separator } from '@radix-ui/react-separator'
@@ -17,6 +17,7 @@ import {
 } from '@/hooks/useComment'
 import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Heart } from 'lucide-react'
 
 function MenuText({ text, onClick }: { text: string; onClick?: () => void }) {
   return (
@@ -136,20 +137,16 @@ function PostDetail({
           {data.title}
         </h1>
 
-        <div className="flex flex-wrap justify-between items-center  gap-3 text-sm text-muted-foreground">
+        <div className="pt-4 flex flex-wrap justify-between items-center gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">
-              {data.userNickname}
-            </span>
+            <Link to={`/blog/${data.userId}/posts`}>
+              <span className="font-medium text-foreground">
+                {data.userNickname}
+              </span>
+            </Link>
             <span>{formattedDate}</span>
           </div>
           <div className="flex items-center gap-2">
-            <MenuText
-              text="통계"
-              onClick={() =>
-                openModal('통계', '아직 구현되지 않은 기능입니다 ㅠㅠ')
-              }
-            />
             <MenuText
               text="수정"
               onClick={() => navigate(`/posts/${data.postId}/update`)}
@@ -190,7 +187,9 @@ function PostDetail({
             )}
           </Avatar>
           <div>
-            <div className="font-semibold text-lg">{data.userNickname}</div>
+            <Link to={`/blog/${data.userId}/posts`}>
+              <div className="font-semibold text-lg">{data.userNickname}</div>
+            </Link>
             {/* 자기소개가 있을 때만 표시 */}
             {data.userIntroduction && (
               <div className="text-sm text-muted-foreground mt-1">
@@ -215,13 +214,15 @@ function PostDetail({
             <Button
               onClick={handleUnlikePost}
               className="cursor-pointer">
-              좋아요 취소 {data.likeCount}
+              <Heart className="w-5 h-5 fill-current" />
+              <span>{data.likeCount}</span>
             </Button>
           ) : (
             <Button
               onClick={handleLikePost}
               className="cursor-pointer">
-              좋아요 {data.likeCount}
+              <Heart className="w-5 h-5" />
+              <span>{data.likeCount}</span>
             </Button>
           )}
         </div>
@@ -237,6 +238,7 @@ function PostDetail({
           />
           <div className="flex justify-end">
             <Button
+              className="cursor-pointer"
               onClick={handleCreateComment}
               disabled={!user?.userId}>
               댓글 등록

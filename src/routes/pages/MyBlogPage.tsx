@@ -110,10 +110,10 @@ export default function MyBlogPage() {
               </div>
             </div>
             <ul className="space-y-1">
-              <li>
+              <li className="cursor-pointer">
                 <button
                   onClick={() => setSelectedSeriesId(null)}
-                  className={`w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-900 ${
+                  className={`w-full text-left px-3 py-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900 ${
                     selectedSeriesId === null
                       ? 'bg-gray-100 dark:bg-gray-900 font-medium'
                       : ''
@@ -130,7 +130,7 @@ export default function MyBlogPage() {
                         ? 'bg-gray-100 dark:bg-gray-900 font-medium'
                         : ''
                     }`}>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between cursor-pointer">
                       <span>{series.name}</span>
                       <span className="text-xs text-gray-500">
                         {series.postCount}
