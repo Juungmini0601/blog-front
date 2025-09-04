@@ -6,7 +6,7 @@ import { Separator } from '@radix-ui/react-separator'
 import { type GetPostResponse } from '@/type/post'
 import Confirm from '@/components/shared/Confirm.tsx'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import CommentForm from '@/components/comments/CommentForm'
 import useUserAPI from '@/hooks/useUser'
 import { useCommentsController } from '@/hooks/comments/useComment'
 import { useLikes } from '@/hooks/likes/useLikes'
@@ -147,24 +147,12 @@ function PostDetail({
           )}
         </div>
 
-        <div className="space-y-2">
-          <Textarea
-            placeholder={
-              user?.userId ? '댓글을 입력하세요' : '로그인 후 댓글 작성 가능'
-            }
-            value={newComment}
-            onChange={e => setNewComment(e.target.value)}
-            disabled={!user?.userId}
-          />
-          <div className="flex justify-end">
-            <Button
-              className="cursor-pointer"
-              onClick={handleCreateComment}
-              disabled={!user?.userId}>
-              댓글 등록
-            </Button>
-          </div>
-        </div>
+        <CommentForm
+          value={newComment}
+          onChange={value => setNewComment(value)}
+          onSubmit={handleCreateComment}
+          isAuthenticated={!!user?.userId}
+        />
 
         <Separator className="my-4 border" />
 
