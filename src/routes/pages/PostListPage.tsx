@@ -1,43 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useInfinitePosts } from '@/hooks/usePost'
 import { Skeleton } from '@/components/ui/skeleton'
 import PostItem from '@/components/posts/PostItem.tsx'
 import PostItemSkeleton from '@/components/posts/PostItemSkeleton.tsx'
+import { usePostList } from '@/hooks/posts/usePostList.ts'
 
 export default function PostListPage() {
-  const {
-    data,
-    isLoading,
-    isError,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage
-  } = useInfinitePosts()
-
-  const observer_ref = useRef<HTMLDivElement | null>(null)
-
-  // 플랫 배열로 변환
-  const posts = useMemo(() => data?.pages.flatMap(p => p.data) ?? [], [data])
-
-  // 교차 관찰자 콜백
-  const handleIntersect = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const is_visible = entries.some(entry => entry.isIntersecting)
-      if (is_visible && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage().catch(() => {})
-      }
-    },
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
-  )
-
-  useEffect(() => {
-    if (!observer_ref.current) return
-    const observer = new IntersectionObserver(handleIntersect, {
-      threshold: 0.2
-    })
-    observer.observe(observer_ref.current)
-    return () => observer.disconnect()
-  }, [handleIntersect])
+  const { posts, isLoading, isError, isFetchingNextPage, observerRef } =
+    usePostList()
 
   if (isLoading) {
     return (
@@ -71,7 +39,7 @@ export default function PostListPage() {
       </div>
 
       <div
-        ref={observer_ref}
+        ref={observerRef}
         className="h-8"
       />
 
