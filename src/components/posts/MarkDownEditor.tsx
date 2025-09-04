@@ -1,17 +1,17 @@
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button.tsx'
+import { Textarea } from '@/components/ui/textarea.tsx'
 import {
   Bold,
-  Italic,
-  Link as LinkIcon,
   Code,
-  ImageIcon,
   Heading1,
   Heading2,
   Heading3,
+  ImageIcon,
+  Italic,
+  Link as LinkIcon,
   List
 } from 'lucide-react'
-import useEditor from '@/hooks/useEditor'
+import useEditor from '@/hooks/useEditor.ts'
 
 export interface MarkDownEditorProps {
   value: string

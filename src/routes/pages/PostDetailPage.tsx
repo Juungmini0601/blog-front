@@ -1,6 +1,6 @@
 import { useDeletePost, useGetPostDetail, usePostAPI } from '@/hooks/usePost'
 import { Link, useNavigate, useParams } from 'react-router'
-import MarkdownPreview from '@/components/MarkdownPreview'
+import MarkdownPreview from '@/components/posts/MarkdownPreview.tsx'
 import { format } from 'date-fns'
 import { Separator } from '@radix-ui/react-separator'
 import { useModalStore } from '@/store/modalStore'

@@ -1,4 +1,3 @@
-import usePostCreateForm from '@/hooks/form/usePostCreateForm'
 import { Globe, Lock, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,66 +17,23 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import MarkDownEditor from '@/components/MarkDownEditor'
-import MarkdownPreview from '@/components/MarkdownPreview'
-import { useGetUserSeries } from '@/hooks/useSeries'
-import useUserAPI from '@/hooks/useUser'
-import {
-  useCreatePostDraftMutation,
-  useUpdatePostDraftMutation,
-  useDeletePostDraftMutation
-} from '@/hooks/usePostdraft'
-import { useEffect, useState } from 'react'
-import { useModalStore } from '@/store/modalStore.ts'
-import { useLocation } from 'react-router'
-import type { PostDraftItem } from '@/type/postdraft'
+import MarkDownEditor from '@/components/posts/MarkDownEditor.tsx'
+import MarkdownPreview from '@/components/posts/MarkdownPreview.tsx'
+import usePostCreate from '@/hooks/posts/usePostCreate.ts'
 
 export default function PostCreatePage() {
-  const { openModal } = useModalStore()
-
-  // 임시 저장 상태 및 훅
-  const [draftId, setDraftId] = useState<number | undefined>(undefined)
-  const { mutate: createPostDraft, isPending: isCreatingDraft } =
-    useCreatePostDraftMutation()
-  const { mutate: updatePostDraft, isPending: isUpdatingDraft } =
-    useUpdatePostDraftMutation()
-  const { mutate: deletePostDraft } = useDeletePostDraftMutation()
-
-  const { register, handleSubmit, watch, setValue, errors, onSubmit } =
-    usePostCreateForm({
-      onSuccess: () => {
-        if (draftId) {
-          // 게시글 저장 성공 시, 임시 저장본이 있으면 삭제
-          deletePostDraft(draftId)
-        }
-      }
-    })
-  const watchedValues = watch()
-
-  // 라우팅 상태에서 임시글 불러오기
-  const location = useLocation()
-  useEffect(() => {
-    const state = location.state as { draft?: PostDraftItem } | null
-    const draft = state?.draft
-    if (draft) {
-      setDraftId(draft.postDraftId)
-      setValue('title', draft.title)
-      setValue('content', draft.content)
-      setValue('thumbnailUrl', draft.thumbnailUrl ?? '')
-      setValue('isPublic', draft.isPublic)
-      setValue('seriesId', draft.seriesId ?? undefined)
-    }
-  }, [location.state, setValue])
-
-  // 로그인 사용자 정보 및 시리즈 목록 조회
-  const { user } = useUserAPI()
-  const userId = user?.userId
-  const { data: userSeries = [] } = useGetUserSeries(userId ? userId : 0)
-
-  // 선택된 시리즈 정보
-  const selectedSeries = userSeries?.find(
-    series => series.seriesId === watchedValues.seriesId
-  )
+  const {
+    register,
+    setValue,
+    errors,
+    watchedValues,
+    userSeries,
+    selectedSeries,
+    handleSaveDraft,
+    isCreatingDraft,
+    isUpdatingDraft,
+    handleFormSubmit
+  } = usePostCreate()
 
   return (
     <div className="min-h-screen bg-background">
@@ -203,45 +159,13 @@ export default function PostCreatePage() {
                   variant="outline"
                   className="cursor-pointer"
                   disabled={isCreatingDraft || isUpdatingDraft}
-                  onClick={() => {
-                    const payload = {
-                      title: watchedValues.title || '',
-                      content: watchedValues.content || '',
-                      thumbnailUrl: watchedValues.thumbnailUrl || undefined,
-                      isPublic: watchedValues.isPublic,
-                      seriesId: watchedValues.seriesId
-                    }
-                    if (draftId) {
-                      updatePostDraft(
-                        {
-                          postDraftId: draftId,
-                          request: payload
-                        },
-                        {
-                          onSuccess: () => {
-                            openModal(
-                              '임시 저장',
-                              '임시 저장이 완료되었습니다.'
-                            )
-                          }
-                        }
-                      )
-                    } else {
-                      createPostDraft(payload, {
-                        onSuccess: res => {
-                          const newId = res.data?.postDraftId
-                          if (newId) setDraftId(newId)
-                          openModal('임시 저장', '임시 저장이 완료되었습니다.')
-                        }
-                      })
-                    }
-                  }}>
+                  onClick={handleSaveDraft}>
                   임시 저장
                 </Button>
                 <Button
                   variant="outline"
                   className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                  onClick={handleSubmit(onSubmit)}>
+                  onClick={handleFormSubmit}>
                   <Save className="h-4 w-4 mr-2" />
                   저장
                 </Button>

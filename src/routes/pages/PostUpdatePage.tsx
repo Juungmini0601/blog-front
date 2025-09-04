@@ -1,4 +1,4 @@
-import { Save, Globe, Lock } from 'lucide-react'
+import { Globe, Lock, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -17,8 +17,8 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import MarkDownEditor from '@/components/MarkDownEditor'
-import MarkdownPreview from '@/components/MarkdownPreview'
+import MarkDownEditor from '@/components/posts/MarkDownEditor.tsx'
+import MarkdownPreview from '@/components/posts/MarkdownPreview.tsx'
 import { useParams } from 'react-router'
 import usePostUpdateForm from '@/hooks/form/usePostUpdateForm'
 
