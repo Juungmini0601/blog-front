@@ -1,4 +1,4 @@
-import { Globe, Lock, Save } from 'lucide-react'
+import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -7,28 +7,16 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import MarkDownEditor from '@/components/posts/MarkDownEditor.tsx'
-import MarkdownPreview from '@/components/posts/MarkdownPreview.tsx'
+import PostTitleInput from '@/components/posts/PostTitleInput.tsx'
+import PostThumbnailInput from '@/components/posts/PostThumbnailInput.tsx'
+import PostSeriesInput from '@/components/posts/PostSeriesInput.tsx'
+import PostPublicInput from '@/components/posts/PostPublicInput.tsx'
+import PostPreview from '@/components/posts/PostPreview.tsx'
 import { useParams } from 'react-router'
 import usePostUpdateForm from '@/hooks/form/usePostUpdateForm'
-
-// TODO 변경 예정 더미 시리즈 데이터
-const seriesList = [
-  { id: 1, name: 'React 심화 학습' },
-  { id: 2, name: 'TypeScript 완전 정복' },
-  { id: 3, name: 'Next.js 실전 가이드' },
-  { id: 4, name: 'UI/UX 디자인 패턴' }
-]
+import { useGetUserSeries } from '@/hooks/useSeries'
+import useUserAPI from '@/hooks/useUser'
 
 export default function PostUpdatePage() {
   const { postId } = useParams()
@@ -45,8 +33,13 @@ export default function PostUpdatePage() {
   } = usePostUpdateForm(numberPostId)
 
   const watchedValues = watch()
-  const selectedSeries = seriesList.find(
-    series => series.id === watchedValues.seriesId
+
+  // 사용자 시리즈 불러오기 및 선택된 시리즈 계산
+  const { user } = useUserAPI()
+  const userId = user?.userId
+  const { data: userSeries = [] } = useGetUserSeries(userId ? userId : 0)
+  const selectedSeries = userSeries?.find(
+    s => s.seriesId === watchedValues.seriesId
   )
 
   if (!postId) {
@@ -68,86 +61,33 @@ export default function PostUpdatePage() {
           <div className="xl:col-span-7 space-y-6">
             <Card>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">제목 *</Label>
-                  <Input
-                    id="title"
-                    placeholder="글 제목을 입력하세요"
-                    {...register('title')}
-                    className={errors.title ? 'border-destructive' : ''}
+                <PostTitleInput
+                  field={register('title')}
+                  error={errors?.title?.message}
+                  currentLength={watchedValues.title?.length || 0}
+                  isLoading={isLoading}
+                />
+
+                <PostThumbnailInput
+                  field={register('thumbnailUrl')}
+                  error={errors.thumbnailUrl?.message}
+                  isLoading={isLoading}
+                />
+
+                <div className="flex justify-between">
+                  <PostSeriesInput
+                    value={watchedValues.seriesId}
+                    onChange={value => setValue('seriesId', value)}
+                    series={userSeries || []}
+                    isLoading={isLoading}
+                    error={errors.seriesId?.message}
                   />
-                  {errors.title && (
-                    <p className="text-sm text-destructive">
-                      {errors.title.message}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {watchedValues.title?.length || 0}/255자
-                  </p>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="thumbnailUrl">썸네일 URL</Label>
-                  <Input
-                    id="thumbnailUrl"
-                    placeholder="https://example.com/image.jpg"
-                    {...register('thumbnailUrl')}
-                    className={errors.thumbnailUrl ? 'border-destructive' : ''}
-                  />
-                  {errors.thumbnailUrl && (
-                    <p className="text-sm text-destructive">
-                      {errors.thumbnailUrl.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="seriesId">시리즈</Label>
-                  <Select
-                    value={watchedValues.seriesId?.toString() || 'none'}
-                    onValueChange={value =>
-                      setValue(
-                        'seriesId',
-                        value === 'none' ? undefined : Number.parseInt(value)
-                      )
-                    }>
-                    <SelectTrigger>
-                      <SelectValue placeholder="시리즈를 선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">시리즈 없음</SelectItem>
-                      {seriesList.map(series => (
-                        <SelectItem
-                          key={series.id}
-                          value={series.id.toString()}>
-                          {series.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isPublic"
+                  <PostPublicInput
                     checked={watchedValues.isPublic}
                     onCheckedChange={checked => setValue('isPublic', checked)}
+                    isLoading={isLoading}
                   />
-                  <Label
-                    htmlFor="isPublic"
-                    className="flex items-center gap-2">
-                    {watchedValues.isPublic ? (
-                      <>
-                        <Globe className="h-4 w-4" />
-                        공개
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="h-4 w-4" />
-                        비공개
-                      </>
-                    )}
-                  </Label>
                 </div>
               </CardContent>
             </Card>
@@ -180,51 +120,13 @@ export default function PostUpdatePage() {
             </Card>
           </div>
 
-          <div className="xl:col-span-5">
-            <Card className="sticky top-6">
-              <CardContent className="space-y-4">
-                <div className="space-y-2 pb-4 border-b">
-                  <h1 className="text-2xl font-bold text-primary">
-                    {watchedValues.title || '제목을 입력하세요'}
-                  </h1>
-
-                  {watchedValues.thumbnailUrl && (
-                    <img
-                      src={watchedValues.thumbnailUrl}
-                      alt="썸네일"
-                      className="w-full h-48 object-cover rounded-lg"
-                      onError={e => {
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
-                  )}
-
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    {selectedSeries && (
-                      <span className="bg-secondary px-2 py-1 rounded">
-                        {selectedSeries.name}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      {watchedValues.isPublic ? (
-                        <>
-                          <Globe className="h-3 w-3" />
-                          공개
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="h-3 w-3" />
-                          비공개
-                        </>
-                      )}
-                    </span>
-                  </div>
-                </div>
-
-                <MarkdownPreview content={watchedValues.content} />
-              </CardContent>
-            </Card>
-          </div>
+          <PostPreview
+            title={watchedValues.title}
+            thumbnailUrl={watchedValues.thumbnailUrl}
+            content={watchedValues.content}
+            isPublic={watchedValues.isPublic}
+            selectedSeries={selectedSeries}
+          />
         </div>
       </div>
     </div>
