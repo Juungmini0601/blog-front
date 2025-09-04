@@ -1,92 +1,40 @@
 import { Link, useNavigate, useParams } from 'react-router'
-import { useGetUserSeries } from '@/hooks/useSeries.ts'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  useInfiniteSeriesPosts,
-  useInfiniteUserPosts
-} from '@/hooks/usePost.ts'
+import { useUserPosts } from '@/hooks/form/useUserPosts'
+import { formatRelativeDate } from '@/lib/date.ts'
 
+// 이쪽 컴포넌트는 재사용 가능성이 별로 없어서 걍 냅두기.
 export default function MyBlogPage() {
   const { userId } = useParams()
   const numericUserId = Number(userId)
   const navigate = useNavigate()
-  const [selectedSeriesId, setSelectedSeriesId] = useState<number | null>(null)
-
   const {
-    data: seriesList,
-    isLoading: isSeriesLoading,
-    error: seriesError
-  } = useGetUserSeries(numericUserId)
+    // selection
+    selectedSeriesId,
+    setSelectedSeriesId,
 
-  const {
-    data: userPosts,
-    fetchNextPage: fetchNextUserPosts,
-    hasNextPage: hasNextUserPosts,
-    isLoading: isUserPostsLoading,
-    isFetchingNextPage: isFetchingNextUserPosts
-  } = useInfiniteUserPosts(numericUserId)
+    // series list
+    seriesList,
+    isSeriesLoading,
+    seriesError,
 
-  const {
-    data: seriesPosts,
-    fetchNextPage: fetchNextSeriesPosts,
-    hasNextPage: hasNextSeriesPosts,
-    isLoading: isSeriesPostsLoading,
-    isFetchingNextPage: isFetchingNextSeriesPosts
-  } = useInfiniteSeriesPosts(selectedSeriesId ?? 0)
+    // posts data
+    flatPosts,
+    hasNext,
+    loadingInitial,
+    loadingMore,
 
-  // 렌더링에 사용할 포스트 소스 결정
-  const isSeriesSelected = selectedSeriesId !== null
+    // sentinel
+    sentinelRef
+  } = useUserPosts({ userId: numericUserId })
 
-  const flatPosts = useMemo(() => {
-    const source = isSeriesSelected ? seriesPosts : userPosts
-    const pages = source?.pages ?? []
-    return pages.flatMap(page => page.data)
-  }, [isSeriesSelected, seriesPosts, userPosts])
-
-  const hasNext = isSeriesSelected ? !!hasNextSeriesPosts : !!hasNextUserPosts
-  const fetchNext = isSeriesSelected ? fetchNextSeriesPosts : fetchNextUserPosts
-  const loadingInitial = isSeriesSelected
-    ? isSeriesPostsLoading
-    : isUserPostsLoading
-  const loadingMore = isSeriesSelected
-    ? isFetchingNextSeriesPosts
-    : isFetchingNextUserPosts
-
-  // 무한 스크롤 옵저버
-  const sentinelRef = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    if (!sentinelRef.current) return
-    const el = sentinelRef.current
-    const observer = new IntersectionObserver(
-      entries => {
-        const [entry] = entries
-        if (entry.isIntersecting && hasNext && !loadingMore) {
-          fetchNext()
-        }
-      },
-      { root: null, rootMargin: '200px', threshold: 0 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [fetchNext, hasNext, loadingMore, isSeriesSelected])
-
-  // 초기 로딩/에러 상태 (시리즈 목록)
   if (isSeriesLoading) return <div className="p-6">Loading...</div>
   if (seriesError) return <div className="p-6">에러가 발생 했습니다</div>
-
-  function formatDate(iso: string) {
-    try {
-      return new Date(iso).toLocaleDateString()
-    } catch {
-      return ''
-    }
-  }
 
   return (
     <div className="min-h-[calc(100vh-64px)] w-full">
       <div className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex flex-col md:flex-row gap-6">
-          {/* 왼쪽 사이드바: 시리즈 목록 (작은 화면에서는 위로) */}
+          {/* 시리즈 목록 */}
           <aside className="w-full md:w-64 md:border-r border-gray-200 dark:border-gray-800 md:pr-4 md:sticky md:top-0 md:h-[calc(100vh-64px)]">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold">시리즈</h2>
@@ -142,10 +90,9 @@ export default function MyBlogPage() {
             </ul>
           </aside>
 
-          {/* 메인 콘텐츠: 포스트 1열 목록 + 무한 스크롤 */}
+          {/* 콘텐츠 */}
           <main className="flex-1">
             <div className="max-w-2xl mx-auto space-y-4">
-              {/* 초기 포스트 로딩 */}
               {loadingInitial && flatPosts.length === 0 && (
                 <div className="text-center text-gray-500 py-10">
                   불러오는 중...
@@ -189,8 +136,9 @@ export default function MyBlogPage() {
                       )}
                       <span>{post.nickname}</span>
                       <span>•</span>
-                      <time>{formatDate(post.createdAt)}</time>
+                      <time>{formatRelativeDate(post.createdAt)}</time>
                     </div>
+                    <h2 className="font-bold pt-2">{post.title}</h2>
                     <p className="mt-2 text-sm text-gray-800 dark:text-gray-200 line-clamp-3">
                       {post.content}
                     </p>
@@ -203,14 +151,14 @@ export default function MyBlogPage() {
                 </article>
               ))}
 
-              {/* 로딩 더보기 표시 */}
+              {/* 로딩 */}
               {loadingMore && (
                 <div className="text-center text-gray-500 py-6">
                   더 불러오는 중...
                 </div>
               )}
 
-              {/* 무한 스크롤 센티넬 */}
+              {/* 무한 스크롤  */}
               <div ref={sentinelRef} />
 
               {/* 다음 페이지가 없을 때 끝 표시 */}
