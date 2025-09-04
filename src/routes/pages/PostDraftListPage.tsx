@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import Confirm from '@/components/Confirm'
+import Confirm from '@/components/shared/Confirm.tsx'
 
 export default function PostDraftListPage() {
   const navigate = useNavigate()

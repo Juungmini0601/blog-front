@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2, Save, Trash2 } from 'lucide-react'
-import Confirm from '@/components/Confirm'
+import Confirm from '@/components/shared/Confirm.tsx'
 import SeriesNameInput from '@/components/series/SeriesNameInput.tsx'
 import useSeriesEdit from '@/hooks/series/useSeriesEdit.ts'
 

@@ -8,8 +8,8 @@ import {
 } from '@/components/ui/card.tsx'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/button.tsx'
-import EmailInput from '@/components/EmailInput.tsx'
-import PasswordInput from '@/components/PasswordInput.tsx'
+import EmailInput from '@/components/settings/EmailInput.tsx'
+import PasswordInput from '@/components/settings/PasswordInput.tsx'
 
 export default function LoginPage() {
   const { register, handleSubmit, errors, isLoading, onSubmit } = useLoginForm()

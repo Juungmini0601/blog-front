@@ -8,9 +8,9 @@ import {
 } from '@/components/ui/card'
 import { useUserRegisterForm } from '@/hooks/form/useUserRegisterForm.ts'
 import { Link } from 'react-router'
-import EmailInput from '@/components/EmailInput.tsx'
-import NicknameInput from '@/components/NicknameInput.tsx'
-import PasswordInput from '@/components/PasswordInput.tsx'
+import EmailInput from '@/components/settings/EmailInput.tsx'
+import NicknameInput from '@/components/settings/NicknameInput.tsx'
+import PasswordInput from '@/components/settings/PasswordInput.tsx'
 
 export default function UserRegisterPage() {
   const { register, handleSubmit, errors, isLoading, onSubmit } =

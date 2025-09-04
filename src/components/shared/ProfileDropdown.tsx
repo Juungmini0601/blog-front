@@ -5,9 +5,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+} from '@/components/ui/dropdown-menu.tsx'
+import { Button } from '@/components/ui/button.tsx'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 
 import { Link } from 'react-router'
 import type { GetUserResponse } from '@/type/users.ts'

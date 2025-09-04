@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { User } from 'lucide-react'
-import ImageUploader from '@/components/ImageUploader.tsx'
+import ImageUploader from '@/components/settings/ImageUploader.tsx'
 
 interface ProfileSectionProps {
   profileImageUrl?: string | null
